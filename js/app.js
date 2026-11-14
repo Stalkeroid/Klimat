@@ -123,6 +123,8 @@ class Component extends DCLogic {
       hasSel: sel != null, noSel: sel == null, ringOn: sel != null,
       updated: self.lastTs ? hm(self.lastTs) : '—',
       badge: badge, badgeColor: badgeColor,
+      // легенда: граничні значення активного режиму — білі (без вибраного датчика активна температура)
+      lg: (sel != null && st.metric === 'h') ? { t: '#9AA4B5', h: '#F2F4F8' } : { t: '#F2F4F8', h: '#9AA4B5' },
       changeKey: function () { showSetup(); },
       roomAvg: fmt(avg), roomAvgColor: tempColor(avg),
       stageClick: function () {
