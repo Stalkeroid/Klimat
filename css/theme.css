@@ -35,6 +35,15 @@
   --r-pill: 6px;    /* значок статусу (999px — «таблетка») */
   --r-btn:  8px;    /* кнопки кільця, у пікселях екрана */
 
+  /* --- шрифти ---
+     Exo 2 — головний: задає характер (заголовки, назви, великі значення, текст).
+     JetBrains Mono — допоміжний: дрібні технічні дані (час, осі, шкали, вологість, підписи маркерів).
+     Його квадратні, «приладові» форми перегукуються з геометрією Exo 2, але він тихіший. */
+  --font-display: 'Exo 2', system-ui, sans-serif;     /* заголовки, назви секцій */
+  --font-text:    'Exo 2', system-ui, sans-serif;     /* звичайний текст, назви датчиків */
+  --font-num:     'Exo 2', system-ui, sans-serif;     /* великі значення: температура, плитки */
+  --font-data:    'JetBrains Mono', ui-monospace, monospace; /* дрібні дані: час, осі, шкали */
+
   /* --- текст --- */
   --text:   #EDEFF2;
   --text-2: #C4C9D0;
@@ -58,7 +67,7 @@
 }
 
 /* --- патерн фону: статична інженерна сітка з м'яким згасанням до країв --- */
-body { background: var(--bg); }
+body { background: var(--bg); font-family: var(--font-text); font-variant-numeric: tabular-nums; }
 body::before {
   content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
   background-image:
