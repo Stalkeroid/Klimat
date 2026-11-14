@@ -96,4 +96,5 @@ function renderNow() {
   kids(tplRoot, comp.renderVals(), tree, null);
   patchChildren(appEl, oldTree, tree);
   oldTree = tree;
+  if (comp.afterRender) comp.afterRender();   // хук для логіки, якій потрібен готовий DOM
 }

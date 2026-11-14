@@ -6,8 +6,8 @@
 <title>Клімат кімнати</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/theme.css?v=24">
-<link rel="stylesheet" href="css/style.css?v=24">
+<link rel="stylesheet" href="css/theme.css?v=25">
+<link rel="stylesheet" href="css/style.css?v=25">
 </head>
 <body>
 <div id="app"></div>
@@ -48,10 +48,18 @@
         </sc-for>
       </div>
       <div class="scene" style="scale: {{sceneScale}}; z-index: 2; position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; transform: {{camT}}; transition: {{camTr}}">
+        <!-- невидимі «якорі» датчиків у 3D: за ними стежить шар міток (js/markers.js) -->
         <sc-for list="{{markers}}" as="m">
-          <div style="position: absolute; left: -14px; top: -14px; width: 28px; height: 28px; transform-origin: 14px 14px; transform: {{m.t}}; transition: {{m.tr}}; opacity: {{m.op}}; pointer-events: {{m.pe}}">
-            <button class="sensor-btn" onClick="{{m.pick}}" aria-label="{{m.aria}}" style="width: 28px; height: 28px; border-radius: 50%; padding: 0; cursor: pointer; border: 3px solid var(--bg); background: {{m.color}}; box-shadow: 0 0 0 5px {{m.halo}}, 0 0 26px {{m.color}}"></button>
-            <span style="position: absolute; left: 36px; top: 2px; white-space: nowrap; pointer-events: none; font-family: var(--font-data); font-size: 13px; color: var(--text); background: var(--label-bg); border: 1px solid var(--stroke); border-radius: var(--r-sm); padding: 3px 8px">{{m.name}} · {{m.temp}}</span>
+          <div class="anchor" style="position: absolute; left: -1px; top: -1px; width: 2px; height: 2px; pointer-events: none; transform: {{m.t}}"></div>
+        </sc-for>
+      </div>
+      <!-- мітки датчиків: плаский шар поверх кімнати, завжди одного розміру й чіткі -->
+      <div class="mk-layer" aria-label="Датчики в кімнаті">
+        <sc-for list="{{markers}}" as="m">
+          <div class="mk {{m.cls}}" style="--c: {{m.color}}; opacity: {{m.op}}">
+            <span class="mk-lead"></span>
+            <button class="mk-tag" type="button" onClick="{{m.pick}}" aria-label="{{m.aria}}" style="pointer-events: {{m.pe}}"><span class="mk-name">{{m.name}}</span><span class="mk-val">{{m.temp}}</span></button>
+            <button class="mk-pt" type="button" tabindex="-1" onClick="{{m.pick}}" aria-label="{{m.aria}}" style="pointer-events: {{m.pe}}"><i></i></button>
           </div>
         </sc-for>
       </div>
@@ -184,11 +192,12 @@
 </div>
 </template>
 
-<script src="js/config.js?v=24"></script>
-<script src="js/engine.js?v=24"></script>
-<script src="js/room.js?v=24"></script>
-<script src="js/utils.js?v=24"></script>
-<script src="js/data.js?v=24"></script>
-<script src="js/app.js?v=24"></script>
+<script src="js/config.js?v=25"></script>
+<script src="js/engine.js?v=25"></script>
+<script src="js/room.js?v=25"></script>
+<script src="js/utils.js?v=25"></script>
+<script src="js/data.js?v=25"></script>
+<script src="js/markers.js?v=25"></script>
+<script src="js/app.js?v=25"></script>
 </body>
 </html>

@@ -73,6 +73,8 @@ class Component extends DCLogic {
     }
   }
 
+  afterRender() { trackMarkers(this.state.dragging ? 200 : 1400); }
+
   select(i) {
     this.innerClick = true;
     if (this.moved) { this.moved = false; return; }
@@ -103,13 +105,17 @@ class Component extends DCLogic {
     // «зараз» — останній запис (реальний час); кільце за добу — погодинні середні
     var cur = self.raw.map(latestOf);
 
+    // мітки: 3D-якір (лише позиція) + плаский шар з табличкою; див. js/markers.js
+    var STALE_MS = 15 * 60000;
     var markers = SENSORS.map(function (s, i) {
-      var isSel = sel === i;
+      var isSel = sel === i, c = toCss(s.pos), arr = self.raw[i];
+      var stale = !arr.length || Date.now() - arr[arr.length - 1].ts > STALE_MS;
       return {
-        code: s.code, name: s.name, temp: fmt(cur[i]), color: tempColor(cur[i]), halo: tempColor(cur[i], 0.22),
-        t: bb(s.pos, 14), tr: st.dragging ? 'none' : 'transform 1.2s cubic-bezier(.65,0,.25,1), opacity .4s',
+        name: s.name, temp: fmt(cur[i]), color: tempColor(cur[i]),
+        t: 'translate3d(' + c[0] + 'px,' + c[1] + 'px,' + c[2] + 'px)',
+        cls: stale ? 'mk--stale' : '',
         op: isSel ? 0 : (sel == null ? 1 : 0.55), pe: isSel ? 'none' : 'auto',
-        aria: s.name + ', ' + fmt(cur[i]) + '. Показати графік',
+        aria: s.name + ', ' + fmt(cur[i]) + (stale ? ', дані застарілі' : '') + '. Показати графік',
         pick: function () { self.select(i); }
       };
     });
