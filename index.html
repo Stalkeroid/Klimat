@@ -6,8 +6,8 @@
 <title>Клімат кімнати</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/theme.css?v=22">
-<link rel="stylesheet" href="css/style.css?v=22">
+<link rel="stylesheet" href="css/theme.css?v=23">
+<link rel="stylesheet" href="css/style.css?v=23">
 </head>
 <body>
 <div id="app"></div>
@@ -25,13 +25,12 @@
 
 <template id="tpl">
 <div style="min-height: 900px; box-sizing: border-box; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 20px; background: transparent; color: var(--text); font-family: var(--font-text)">
-  <header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px">
+  <header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px">
     <div style="display: flex; flex-direction: column; gap: 6px">
       <h1 style="margin: 0; font-family: var(--font-display); font-size: 30px; font-weight: 700; letter-spacing: -0.01em; color: var(--text)">Клімат кімнати</h1>
-      <p style="margin: 0; font-size: 14px; color: var(--text-3)">4 датчики температури · останні 24 години · дані від {{updated}}</p>
     </div>
     <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
-      <span class="glass" style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-2); border: 1px solid var(--stroke-strong); border-radius: var(--r-pill); padding: 6px 12px"><span style="width: 8px; height: 8px; border-radius: 50%; background: {{badgeColor}}; box-shadow: 0 0 8px {{badgeColor}}"></span>{{badge}}</span>
+      <span class="glass" role="status" title="{{badgeTitle}}" style="display: flex; align-items: center; gap: 8px; font-family: var(--font-data); font-size: 11px; font-weight: 500; letter-spacing: 0.08em; color: var(--text-2); border: 1px solid var(--stroke-strong); border-radius: var(--r-pill); padding: 7px 12px"><span style="width: 8px; height: 8px; border-radius: 50%; background: {{badgeColor}}; box-shadow: 0 0 8px {{badgeColor}}"></span>{{badge}}</span>
       
     </div>
   </header>
@@ -181,11 +180,11 @@
 </div>
 </template>
 
-<script src="js/config.js?v=22"></script>
-<script src="js/engine.js?v=22"></script>
-<script src="js/room.js?v=22"></script>
-<script src="js/utils.js?v=22"></script>
-<script src="js/data.js?v=22"></script>
-<script src="js/app.js?v=22"></script>
+<script src="js/config.js?v=23"></script>
+<script src="js/engine.js?v=23"></script>
+<script src="js/room.js?v=23"></script>
+<script src="js/utils.js?v=23"></script>
+<script src="js/data.js?v=23"></script>
+<script src="js/app.js?v=23"></script>
 </body>
 </html>

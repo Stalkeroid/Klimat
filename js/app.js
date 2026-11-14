@@ -142,19 +142,22 @@ class Component extends DCLogic {
     if (all.length) room.range = fmt(Math.min.apply(null, all)) + ' – ' + fmt(Math.max.apply(null, all));
 
     var badge, badgeColor;
-    if (st.status === 'loading') { badge = 'Завантаження…'; badgeColor = 'var(--text-3)'; }
-    else if (st.status === 'ok' && self.lastTs && Date.now() - self.lastTs < 15 * 60000) { badge = 'Наживо · ThingSpeak'; badgeColor = '#5BC28A'; }
-    else if (st.status === 'ok' && self.lastTs) { badge = 'Нових даних немає з ' + hm(self.lastTs); badgeColor = '#E9B44C'; }
-    else if (st.status === 'ok') { badge = 'У каналі ще немає даних'; badgeColor = '#E9B44C'; }
-    else if (st.status === 'error') { badge = 'Немає зв’язку з ThingSpeak'; badgeColor = '#E8553F'; }
-    else { badge = 'Потрібен ключ ThingSpeak'; badgeColor = '#E8553F'; }
+    // індикатор статусу: стан + час останніх даних (замість підзаголовка)
+    var tLast = self.lastTs ? ' · ' + hm(self.lastTs) : '';
+    if (st.status === 'loading') { badge = 'ЗАВАНТАЖЕННЯ'; badgeColor = 'var(--text-3)'; }
+    else if (st.status === 'ok' && self.lastTs && Date.now() - self.lastTs < 15 * 60000) { badge = 'НАЖИВО' + tLast; badgeColor = '#5BC28A'; }
+    else if (st.status === 'ok' && self.lastTs) { badge = 'НЕМАЄ ДАНИХ' + tLast; badgeColor = '#E9B44C'; }
+    else if (st.status === 'ok') { badge = 'КАНАЛ ПОРОЖНІЙ'; badgeColor = '#E9B44C'; }
+    else if (st.status === 'error') { badge = 'НЕМАЄ ЗВ’ЯЗКУ' + tLast; badgeColor = '#E8553F'; }
+    else { badge = 'ПОТРІБЕН КЛЮЧ'; badgeColor = '#E8553F'; }
+    var badgeTitle = self.lastTs ? 'Останні дані з ThingSpeak: ' + new Date(self.lastTs).toLocaleString('uk-UA') : 'ThingSpeak';
 
     var vals = {
       faces: faces, markers: markers, list: list, room: room,
       camT: camT, camTr: tr, sceneScale: ((window.innerWidth <= 700 ? 0.62 : 1) * st.zoom).toFixed(3), cursor: st.dragging ? 'grabbing' : 'grab',
       hasSel: sel != null, noSel: sel == null, ringOn: sel != null,
       updated: self.lastTs ? hm(self.lastTs) : '—',
-      badge: badge, badgeColor: badgeColor,
+      badge: badge, badgeColor: badgeColor, badgeTitle: badgeTitle,
       // легенда: граничні значення активного режиму — білі (без вибраного датчика активна температура)
       lg: (sel != null && st.metric === 'h') ? { t: 'var(--text-3)', h: 'var(--text)' } : { t: 'var(--text)', h: 'var(--text-3)' },
       changeKey: function () { showSetup(); },
