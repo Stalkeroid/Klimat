@@ -370,7 +370,11 @@ document.getElementById('setupForm').addEventListener('submit', function (e) {
   if (!v) { document.getElementById('setupErr').textContent = 'Вставте ключ.'; return; }
   try { localStorage.setItem('ts_read_key', v); } catch (err) { READ_KEY = v; }
   if (!READ_KEY) READ_KEY = '';
-  document.getElementById('setup').hidden = true;
+  hideSetup();
   comp.setState({ status: 'loading' });
   comp.load();
+});
+document.getElementById('setupCancel').addEventListener('click', hideSetup);
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape' && !document.getElementById('setup').hidden && !document.getElementById('setupCancel').hidden) hideSetup();
 });

@@ -52,6 +52,8 @@
 
   /* --- акценти --- */
   --accent:      #8CC8E6;
+  --accent-hover:#A3D4EC;
+  --danger:      #F59E8B;  /* помилки */
   --accent-soft: rgba(140,200,230,0.09);
   --accent-line: rgba(140,200,230,0.50);
   --cold: #8EC9F5;  /* мінімум */

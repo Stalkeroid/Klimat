@@ -23,9 +23,13 @@ function getKey() {
 }
 function showSetup(msg) {
   document.getElementById('setupErr').textContent = msg || '';
+  document.getElementById('setupChannel').textContent = CHANNEL_ID;
   document.getElementById('keyInput').value = getKey();
+  document.getElementById('setupCancel').hidden = !getKey() || !!msg;   // «Скасувати» — лише коли ключ уже робочий
   document.getElementById('setup').hidden = false;
+  setTimeout(function () { var i = document.getElementById('keyInput'); i.focus(); i.select(); }, 0);
 }
+function hideSetup() { document.getElementById('setup').hidden = true; }
 
 
 // Читає канал за останні ~25 годин. Повертає { raw, hum, lastTs } або null, якщо ключ невірний.
