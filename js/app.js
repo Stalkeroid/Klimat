@@ -185,7 +185,7 @@ class Component extends DCLogic {
       var mn = tf.length ? Math.min.apply(null, tf) : NaN, mx = tf.length ? Math.max.apply(null, tf) : NaN;
       var mean = tf.length ? tf.reduce(function (a, b) { return a + b; }, 0) / tf.length : NaN;
       // кільце — окремий 2D-елемент поверх сцени, від зуму кімнати не залежить
-      vals.ringScale = window.innerWidth <= 700 ? 1.05 : 1.65;
+      vals.ringScale = window.innerWidth <= 700 ? 1.05 : 1.4;   // CSS zoom: малюється чітко, без розмиття
       var hourMode = st.hourView != null, segs, N, now = new Date(self.now), havg = NaN;
       if (!hourMode) {
         N = 24;

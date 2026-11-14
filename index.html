@@ -6,7 +6,7 @@
 <title>Клімат кімнати</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="css/style.css?v=7">
+<link rel="stylesheet" href="css/style.css?v=8">
 </head>
 <body>
 <div id="app"></div>
@@ -51,7 +51,8 @@
         </sc-for>
       </div>
         <sc-if value="{{ringOn}}">
-        <div class="ring" onClick="{{ringClick}}" onPointerMove="{{ringMove}}" onMouseMove="{{ringMove}}" onPointerLeave="{{clearHover}}" style="z-index: 3; position: absolute; left: 50%; top: 50%; margin-left: -166px; margin-top: -166px; width: 332px; height: 332px; transform-origin: 50% 50%; transform: scale({{ringScale}})">
+        <div style="z-index: 3; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none">
+        <div class="ring" onClick="{{ringClick}}" onPointerMove="{{ringMove}}" onMouseMove="{{ringMove}}" onPointerLeave="{{clearHover}}" style="flex: none; position: relative; width: 332px; height: 332px; pointer-events: auto; zoom: {{ringScale}}">
           <svg width="332" height="332" viewBox="-166 -166 332 332" role="img" aria-label="{{ringAria}}" onMouseLeave="{{clearHover}}" style="display: block; overflow: visible">
             <circle r="164" fill="rgba(11,16,26,0.78)" stroke="rgba(255,255,255,0.10)" stroke-width="1"></circle>
             <sc-for list="{{grid}}" as="g">
@@ -86,6 +87,7 @@
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
           </button>
           </sc-if>
+        </div>
         </div>
       </sc-if>
 
@@ -166,11 +168,11 @@
 </div>
 </template>
 
-<script src="js/config.js?v=7"></script>
-<script src="js/engine.js?v=7"></script>
-<script src="js/room.js?v=7"></script>
-<script src="js/utils.js?v=7"></script>
-<script src="js/data.js?v=7"></script>
-<script src="js/app.js?v=7"></script>
+<script src="js/config.js?v=8"></script>
+<script src="js/engine.js?v=8"></script>
+<script src="js/room.js?v=8"></script>
+<script src="js/utils.js?v=8"></script>
+<script src="js/data.js?v=8"></script>
+<script src="js/app.js?v=8"></script>
 </body>
 </html>
