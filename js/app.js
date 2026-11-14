@@ -179,7 +179,7 @@ class Component extends DCLogic {
         if (Object.keys(self.ptrs).length < 2) self.pinch = null;
         self.drag = null; if (self.state.dragging) self.setState({ dragging: false });
       },
-      ringScale: 1, btn: { size: 56, inset: 4, bottom: 4, radius: 12, icon: 26 }, metricBtn: { label: '', pressed: 'false', showDrop: true, showTherm: false }, toggleMetric: function () {}, ringMove: function () {}, ringAria: '', bars: [], grid: [], nowDot: { x: 0, y: 0, op: 0 }, center: { code: '', mk: '', temp: '', sub: '', color: '#fff' },
+      ringScale: 1, btn: { size: 56, inset: 4, bottom: 4, radius: 12, icon: 26 }, metricBtn: { label: '', pressed: 'false', showDrop: true, showTherm: false }, toggleMetric: function () {}, ringMove: function () {}, ringAria: '', bars: [], grid: [], nowDot: { x: 0, y: 0, op: 0 }, center: { code: '', mk: '', sub2: '', temp: '', sub: '', color: '#fff' },
       det: { code: '', name: '', now: '', avg: '', min: '', max: '', minAt: '', maxAt: '', hum: '', color: '#fff', line: '', area: '', dot: { x: 0, y: 0 }, gridY: [], xStart: '', xMid: '', delta: '', chartAria: '' }
     };
 
@@ -279,7 +279,8 @@ class Component extends DCLogic {
       var ct = shown ? shown.t : (hourMode ? havg : curR);
       vals.center = {
         code: s.name.toUpperCase(), mk: isH ? 'Н' : 'Т', temp: vfmt(ct), color: vcol(ct),
-        sub: shown ? shown.label : (hourMode ? hh(d[st.hourView].hd) + '–' + hh((d[st.hourView].hd + 1) % 24) + ' · сер.' : 'зараз')
+        sub: shown ? shown.label : (hourMode ? hh(d[st.hourView].hd) + '–' + hh((d[st.hourView].hd + 1) % 24) : 'зараз'),
+        sub2: !shown && hourMode ? 'середня' : ''
       };
       // кутові кнопки: не менше ~56 px на екрані незалежно від масштабу кільця
       var bsz = Math.ceil(56 / vals.ringScale);
