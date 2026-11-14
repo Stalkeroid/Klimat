@@ -24,7 +24,7 @@ a{color:#7CC4E4}a:hover{color:#A9DCF0}
 #setup input{font:inherit;font-family:'JetBrains Mono',monospace;font-size:15px;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.18);background:#0F1622;color:#F2F4F8}
 #setup button{font:inherit;font-weight:600;min-height:44px;border-radius:10px;border:0;background:#7CC4E4;color:#0B1019;cursor:pointer}
 #setup .err{color:#F59E8B;font-size:13px}
-@media (max-width:700px){.stage{height:500px !important}.scene{scale:.62}.hint{display:none !important}}
+@media (max-width:700px){.stage{height:500px !important}.hint{display:none !important}}
 .keyBtn{font:inherit;font-size:12px;background:none;border:0;color:#7CC4E4;cursor:pointer;padding:4px 0;min-height:24px}
 </style>
 </head>
@@ -51,21 +51,18 @@ a{color:#7CC4E4}a:hover{color:#A9DCF0}
     </div>
     <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
       <span style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #C9D1DE; border: 1px solid rgba(255,255,255,0.14); border-radius: 999px; padding: 6px 12px"><span style="width: 8px; height: 8px; border-radius: 50%; background: {{badgeColor}}; box-shadow: 0 0 8px {{badgeColor}}"></span>{{badge}}</span>
-      <div style="display: flex; align-items: baseline; gap: 8px; background: #121A27; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 8px 14px">
-        <span style="font-size: 13px; color: #9AA4B5">Середня зараз</span>
-        <span style="font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 600; color: {{roomAvgColor}}">{{roomAvg}}</span>
-      </div>
+      
     </div>
   </header>
 
   <main style="display: flex; flex-wrap: wrap; gap: 20px; align-items: stretch">
-    <div class="stage" onClick="{{stageClick}}" onPointerDown="{{onDown}}" onPointerMove="{{onMove}}" onPointerUp="{{onUp}}" onPointerLeave="{{onUp}}" style="flex: 999 1 640px; min-width: 0; height: 720px; position: relative; overflow: hidden; border-radius: 20px; background: #0F1622; border: 1px solid rgba(255,255,255,0.06); perspective: 1100px; touch-action: none; user-select: none; cursor: {{cursor}}">
-      <div class="scene" style="position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; transform: {{camT}}; transition: {{camTr}}">
+    <div class="stage" onClick="{{stageClick}}" onPointerDown="{{onDown}}" onPointerMove="{{onMove}}" onPointerUp="{{onUp}}" onPointerLeave="{{onUp}}" onPointerCancel="{{onUp}}" onWheel="{{onWheel}}" style="flex: 999 1 640px; min-width: 0; height: 720px; position: relative; overflow: hidden; border-radius: 20px; background: #0F1622; border: 1px solid rgba(255,255,255,0.06); perspective: 1100px; touch-action: none; user-select: none; cursor: {{cursor}}">
+      <div class="scene" style="scale: {{sceneScale}}; position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; transform: {{camT}}; transition: {{camTr}}">
         <sc-for list="{{faces}}" as="f">
           <div style="position: absolute; left: 0; top: 0; transform-origin: 0 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; pointer-events: none; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.045); width: {{f.w}}px; height: {{f.h}}px; transform: {{f.t}}; background: {{f.bg}}; background-image: {{f.img}}; background-size: {{f.bs}}; background-position: {{f.bp}}; opacity: {{f.op}}; transition: opacity .25s"></div>
         </sc-for>
       </div>
-      <div class="scene" style="z-index: 2; position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; transform: {{camT}}; transition: {{camTr}}">
+      <div class="scene" style="scale: {{sceneScale}}; z-index: 2; position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; transform: {{camT}}; transition: {{camTr}}">
         <sc-for list="{{markers}}" as="m">
           <div style="position: absolute; left: -14px; top: -14px; width: 28px; height: 28px; transform-origin: 14px 14px; transform: {{m.t}}; transition: {{m.tr}}; opacity: {{m.op}}; pointer-events: {{m.pe}}">
             <button class="sensor-btn" onClick="{{m.pick}}" aria-label="{{m.aria}}" style="width: 28px; height: 28px; border-radius: 50%; padding: 0; cursor: pointer; border: 3px solid #0B1019; background: {{m.color}}; box-shadow: 0 0 0 5px {{m.halo}}, 0 0 26px {{m.color}}"></button>
@@ -119,7 +116,7 @@ a{color:#7CC4E4}a:hover{color:#A9DCF0}
       <div style="position: absolute; right: 20px; bottom: 16px; z-index: 5; display: flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9AA4B5; pointer-events: none">
         <span>0°</span>
         <span style="display: block; width: 140px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #2F6FE0, #58B4D9 30%, #E9D58A 44%, #F59E4B 64%, #E8553F)"></span>
-        <span>+50°</span>
+        <span>+60°</span>
       </div>
     </div>
 
@@ -459,7 +456,7 @@ function showSetup(msg) {
   document.getElementById('setup').hidden = false;
 }
 
-var STOPS = [[0, [47, 111, 224]], [15, [88, 180, 217]], [22, [233, 213, 138]], [32, [245, 158, 75]], [50, [232, 85, 63]]];
+var STOPS = [[0, [47, 111, 224]], [15, [88, 180, 217]], [22, [233, 213, 138]], [32, [245, 158, 75]], [60, [232, 85, 63]]];
 function tempColor(t, a) {
   if (!isFinite(t)) return a == null ? '#5A6475' : 'rgba(90,100,117,' + a + ')';
   var c = STOPS[0][1];
@@ -476,7 +473,7 @@ function tempColor(t, a) {
 function fmt(t) { return isFinite(t) ? t.toFixed(1).replace('.', ',') + '°' : '—'; }
 function hh(h) { return (h < 10 ? '0' : '') + h + ':00'; }
 function hm(ts) { var d = new Date(ts); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
-function rad(t) { var n = Math.max(0, Math.min(1, (t - 0) / 50)); return 80 + n * 62; }
+function rad(t) { var n = Math.max(0, Math.min(1, (t - 0) / 60)); return 80 + n * 62; }
 function pol(r, deg) { var a = deg * Math.PI / 180; return [Math.round(r * Math.cos(a) * 100) / 100, Math.round(r * Math.sin(a) * 100) / 100]; }
 function wedge(r0, r1, a0, a1) {
   var p1 = pol(r0, a0), p2 = pol(r1, a0), p3 = pol(r1, a1), p4 = pol(r0, a1);
@@ -487,7 +484,9 @@ function finite(arr) { return arr.filter(function (x) { return isFinite(x); }); 
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { sel: null, dYaw: 0, dPitch: 0, dragging: false, hover: null, pinned: null, hourView: null, status: 'loading' };
+    this.state = { sel: null, dYaw: 0, dPitch: 0, dragging: false, hover: null, pinned: null, hourView: null, status: 'loading', zoom: 1 };
+    this.ptrs = {};
+    this.pinch = null;
     this.innerClick = false;
     this.now = Date.now();
     this.room = buildRoom();
@@ -610,7 +609,7 @@ class Component extends DCLogic {
 
     var vals = {
       faces: faces, markers: markers, list: list, room: room,
-      camT: camT, camTr: tr, cursor: st.dragging ? 'grabbing' : 'grab',
+      camT: camT, camTr: tr, sceneScale: ((window.innerWidth <= 700 ? 0.62 : 1) * st.zoom).toFixed(3), cursor: st.dragging ? 'grabbing' : 'grab',
       hasSel: sel != null, noSel: sel == null, ringOn: sel != null,
       updated: self.lastTs ? hm(self.lastTs) : '—',
       badge: badge, badgeColor: badgeColor,
@@ -629,18 +628,47 @@ class Component extends DCLogic {
         self.setState({ hourView: k, dayPinned: st0.pinned, pinned: null, hover: null });
       },
       closeHour: function () { self.innerClick = true; self.setState({ hourView: null, pinned: self.state.dayPinned != null ? self.state.dayPinned : null, hover: null }); },
-      hint: sel == null ? 'Перетягніть, щоб обертати · натисніть на датчик' : 'Натисніть на поділку, щоб закріпити · поза кільцем — назад до кімнати',
+      hint: sel == null ? 'Перетягніть — обертати · колесо або два пальці — масштаб · натисніть на датчик' : 'Натисніть на поділку, щоб закріпити · поза кільцем — назад до кімнати',
       hourMode: false, dayMode: true, rl: { a: '', b: '', c: '', d: '' }, ringClick: function () { self.innerClick = true; },
       clearHover: function () { self.setState({ hover: null }); },
-      onDown: function (e) { self.drag = { x: e.clientX, y: e.clientY, dy: self.state.dYaw, dp: self.state.dPitch }; self.moved = false; },
+      onDown: function (e) {
+        self.ptrs[e.pointerId] = { x: e.clientX, y: e.clientY };
+        var ids = Object.keys(self.ptrs);
+        if (ids.length >= 2) {
+          var a = self.ptrs[ids[0]], b = self.ptrs[ids[1]];
+          self.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, z: self.state.zoom };
+          self.drag = null; self.moved = true;
+          return;
+        }
+        self.drag = { x: e.clientX, y: e.clientY, dy: self.state.dYaw, dp: self.state.dPitch }; self.moved = false;
+      },
+      onWheel: function (e) {
+        e.preventDefault();
+        var z = Math.max(1, Math.min(2, self.state.zoom * Math.exp(-e.deltaY * 0.0015)));
+        if (z !== self.state.zoom) self.setState({ zoom: z });
+      },
       onMove: function (e) {
+        if (self.ptrs[e.pointerId]) self.ptrs[e.pointerId] = { x: e.clientX, y: e.clientY };
+        if (self.pinch) {
+          var ids = Object.keys(self.ptrs);
+          if (ids.length >= 2) {
+            var a = self.ptrs[ids[0]], b = self.ptrs[ids[1]];
+            var z = Math.max(1, Math.min(2, self.pinch.z * Math.hypot(a.x - b.x, a.y - b.y) / self.pinch.d));
+            self.setState({ zoom: z });
+          }
+          return;
+        }
         var d = self.drag; if (!d) return;
         var dx = e.clientX - d.x, dy = e.clientY - d.y;
         if (!self.moved && Math.abs(dx) + Math.abs(dy) < 5) return;
         self.moved = true;
         self.setState({ dragging: true, dYaw: d.dy + dx * 0.25, dPitch: d.dp - dy * 0.2 });
       },
-      onUp: function () { self.drag = null; if (self.state.dragging) self.setState({ dragging: false }); },
+      onUp: function (e) {
+        if (e && e.pointerId != null) delete self.ptrs[e.pointerId];
+        if (Object.keys(self.ptrs).length < 2) self.pinch = null;
+        self.drag = null; if (self.state.dragging) self.setState({ dragging: false });
+      },
       ringT: '', ringMove: function () {}, ringAria: '', bars: [], grid: [], nowDot: { x: 0, y: 0, op: 0 }, center: { code: '', temp: '', sub: '', color: '#fff' },
       det: { code: '', name: '', now: '', avg: '', min: '', max: '', minAt: '', maxAt: '', hum: '', color: '#fff', line: '', area: '', dot: { x: 0, y: 0 }, gridY: [], xStart: '', xMid: '', delta: '', chartAria: '' }
     };
@@ -651,7 +679,7 @@ class Component extends DCLogic {
       var tf = finite(ts);
       var mn = tf.length ? Math.min.apply(null, tf) : NaN, mx = tf.length ? Math.max.apply(null, tf) : NaN;
       var mean = tf.length ? tf.reduce(function (a, b) { return a + b; }, 0) / tf.length : NaN;
-      vals.ringT = bb(s.pos, 90);
+      vals.ringT = bb(s.pos, 90) + ' scale(' + (window.innerWidth <= 700 ? 1.6 : 1.4) + ')';
       var hourMode = st.hourView != null, segs, N, now = new Date(self.now), havg = NaN;
       if (!hourMode) {
         N = 24;
@@ -719,7 +747,7 @@ class Component extends DCLogic {
           hover: function () { if (self.state.hover !== k) self.setState({ hover: k }); }
         };
       });
-      vals.grid = [10, 20, 30, 40].map(function (t) { return { r: rad(t) }; });
+      vals.grid = [10, 20, 30, 40, 50].map(function (t) { return { r: rad(t) }; });
       var rlab = hourMode ? [':00', ':15', ':30', ':45'] : ['00', '06', '12', '18'];
       vals.rl = { a: rlab[0], b: rlab[1], c: rlab[2], d: rlab[3] };
       var nowIdx = -1; segs.forEach(function (g, k) { if (g.isNow) nowIdx = k; });
@@ -766,6 +794,7 @@ comp = new Component({});
 renderNow();
 comp.load();
 setInterval(function () { comp.load(); }, REFRESH_MS);
+window.addEventListener('resize', scheduleRender);
 
 document.getElementById('setupForm').addEventListener('submit', function (e) {
   e.preventDefault();
