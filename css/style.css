@@ -1,25 +1,33 @@
-/* Стилі сторінки. Розмітка — у index.html (<template id="tpl">). */
-body{margin:0;background:#0B1019}
-a{color:#7CC4E4}a:hover{color:#A9DCF0}
+/* Стилі сторінки: поведінка, анімації, адаптивність.
+   Кольори, радіуси, обводки і фон — у css/theme.css (тут лише використовуються змінні).
+   Розмітка — у index.html (<template id="tpl">). */
+body{margin:0}
+a{color:var(--accent)}
 .scene > *{transform-style:preserve-3d}
 @keyframes ringIn{from{opacity:0;scale:.8}to{opacity:1;scale:1}}
 .ring{animation:ringIn .45s cubic-bezier(.2,.8,.2,1) .7s backwards}
-.sensor-btn:focus-visible,.list-btn:focus-visible,.back-btn:focus-visible{outline:2px solid #7CC4E4;outline-offset:3px}
-.list-btn:hover{background:rgba(255,255,255,0.05)}
+.sensor-btn:focus-visible,.list-btn:focus-visible,.pin-btn:focus-visible,.keyBtn:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.list-btn{transition:background .15s,border-color .15s}
+.list-btn:hover{border-color:var(--stroke-strong) !important}
 .bar{transition:opacity .2s}
-#setup{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(5,8,14,0.82);font-family:Inter,system-ui,sans-serif;color:#E6EAF2;padding:20px;box-sizing:border-box}
+
+/* вікно введення ключа */
+#setup{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(5,6,8,0.72);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);font-family:Inter,system-ui,sans-serif;color:var(--text);padding:20px;box-sizing:border-box}
 #setup[hidden]{display:none}
-#setup form{max-width:420px;width:100%;background:#121A27;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:12px}
+#setup form{max-width:420px;width:100%;background:var(--surface-solid);border:1px solid var(--stroke);box-shadow:inset 0 1px 0 var(--highlight);border-radius:var(--r-lg);padding:22px;display:flex;flex-direction:column;gap:12px}
 #setup h2{margin:0;font-family:Manrope,Inter,sans-serif;font-size:20px}
-#setup p{margin:0;font-size:14px;line-height:1.5;color:#C9D1DE}
-#setup label{font-size:13px;color:#9AA4B5}
-#setup input{font:inherit;font-family:'JetBrains Mono',monospace;font-size:15px;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.18);background:#0F1622;color:#F2F4F8}
-#setup button{font:inherit;font-weight:600;min-height:44px;border-radius:10px;border:0;background:#7CC4E4;color:#0B1019;cursor:pointer}
+#setup p{margin:0;font-size:14px;line-height:1.5;color:var(--text-2)}
+#setup label{font-size:13px;color:var(--text-3)}
+#setup input{font:inherit;font-family:'JetBrains Mono',monospace;font-size:15px;padding:12px;border-radius:var(--r-sm);border:1px solid var(--stroke-strong);background:var(--surface-2);color:var(--text)}
+#setup button{font:inherit;font-weight:600;min-height:44px;border-radius:var(--r-sm);border:0;background:var(--accent);color:var(--bg);cursor:pointer}
 #setup .err{color:#F59E8B;font-size:13px}
-@media (max-width:700px){.stage{height:464px !important}.legend{left:14px;right:14px !important;bottom:12px !important;gap:14px !important}.legend-item{flex:1 1 0;min-width:0}.legend-bar{flex:1 1 auto;width:auto !important}.hint{display:none !important}}
-.keyBtn{font:inherit;font-size:12px;background:none;border:0;color:#7CC4E4;cursor:pointer;padding:4px 0;min-height:24px}
+
+.keyBtn{font:inherit;font-size:12px;background:none;border:0;color:var(--accent);cursor:pointer;padding:4px 0;min-height:24px}
 
 /* відгук кнопок кільця */
-.pin-btn{transition:background .12s, transform .08s;-webkit-tap-highlight-color:transparent}
-.pin-btn:hover{background:#1F2C42 !important}
-.pin-btn:active{background:#2A3A56 !important;transform:scale(.94)}
+.pin-btn{transition:background .12s, transform .08s;-webkit-tap-highlight-color:transparent;box-shadow:inset 0 1px 0 var(--highlight);-webkit-backdrop-filter:blur(var(--blur));backdrop-filter:blur(var(--blur))}
+.pin-btn:hover{background:var(--button-hover) !important}
+.pin-btn:active{background:var(--button-active) !important;transform:scale(.94)}
+
+/* телефон */
+@media (max-width:700px){.stage{height:464px !important}.legend{left:14px;right:14px !important;bottom:12px !important;gap:14px !important}.legend-item{flex:1 1 0;min-width:0}.legend-bar{flex:1 1 auto;width:auto !important}.hint{display:none !important}}

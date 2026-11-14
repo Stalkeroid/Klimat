@@ -26,6 +26,12 @@ function mobileRingLayout() {
   return { z: best.z, bottom: Math.round(-((best.top + B) - sqBottom) / best.z) };
 }
 
+// значення CSS-змінної теми в пікселях (css/theme.css)
+function cssPx(name, fallback) {
+  var v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
+  return isFinite(v) ? v : fallback;
+}
+
 class Component extends DCLogic {
   constructor(props) {
     super(props);
@@ -117,7 +123,7 @@ class Component extends DCLogic {
       return {
         code: s.code, name: s.name, temp: fmt(cur[i]), color: tempColor(cur[i]), spark: spark,
         hum: isFinite(self.hum[i]) ? 'Н: ' + Math.round(self.hum[i]) + '%' : '',
-        bg: on ? 'rgba(124,196,228,0.08)' : 'rgba(255,255,255,0.02)', border: on ? 'rgba(124,196,228,0.55)' : 'rgba(255,255,255,0.08)',
+        bg: on ? 'var(--accent-soft)' : 'var(--surface)', border: on ? 'var(--accent-line)' : 'var(--stroke)',
         pressed: on ? 'true' : 'false',
         pick: function () { self.moved = false; self.select(i); self.innerClick = false; }
       };
@@ -136,7 +142,7 @@ class Component extends DCLogic {
     if (all.length) room.range = fmt(Math.min.apply(null, all)) + ' – ' + fmt(Math.max.apply(null, all));
 
     var badge, badgeColor;
-    if (st.status === 'loading') { badge = 'Завантаження…'; badgeColor = '#9AA4B5'; }
+    if (st.status === 'loading') { badge = 'Завантаження…'; badgeColor = 'var(--text-3)'; }
     else if (st.status === 'ok' && self.lastTs && Date.now() - self.lastTs < 15 * 60000) { badge = 'Наживо · ThingSpeak'; badgeColor = '#5BC28A'; }
     else if (st.status === 'ok' && self.lastTs) { badge = 'Нових даних немає з ' + hm(self.lastTs); badgeColor = '#E9B44C'; }
     else if (st.status === 'ok') { badge = 'У каналі ще немає даних'; badgeColor = '#E9B44C'; }
@@ -150,7 +156,7 @@ class Component extends DCLogic {
       updated: self.lastTs ? hm(self.lastTs) : '—',
       badge: badge, badgeColor: badgeColor,
       // легенда: граничні значення активного режиму — білі (без вибраного датчика активна температура)
-      lg: (sel != null && st.metric === 'h') ? { t: '#9AA4B5', h: '#F2F4F8' } : { t: '#F2F4F8', h: '#9AA4B5' },
+      lg: (sel != null && st.metric === 'h') ? { t: 'var(--text-3)', h: 'var(--text)' } : { t: 'var(--text)', h: 'var(--text-3)' },
       changeKey: function () { showSetup(); },
       roomAvg: fmt(avg), roomAvgColor: tempColor(avg),
       stageClick: function () {
@@ -289,12 +295,12 @@ class Component extends DCLogic {
       var eff = st.hover != null ? st.hover : st.pinned;
       vals.bars = segs.map(function (g, k) {
         var a0 = k * segStep - 90 + gap, a1 = (k + 1) * segStep - 90 - gap;
-        if (g.future) return { d: wedge(72, 104, a0, a1), fill: '#2A3240', op: 1, stroke: 'none', hover: function () {} };
+        if (g.future) return { d: wedge(72, 104, a0, a1), fill: 'var(--seg-empty)', op: 1, stroke: 'none', hover: function () {} };
         var isHover = eff === k;
         return {
           d: wedge(72, vrad(g.t), a0, a1), fill: vcol(g.t),
           op: eff == null ? 1 : (isHover ? 1 : 0.4),
-          stroke: g.isNow || isHover ? '#F2F4F8' : 'none',
+          stroke: g.isNow || isHover ? 'var(--text)' : 'none',
           hover: function (e) { if (e.pointerType !== 'mouse') return; if (self.state.hover !== k) self.setState({ hover: k }); }
         };
       });
@@ -314,7 +320,7 @@ class Component extends DCLogic {
       // кутові кнопки: не менше ~56 px на екрані незалежно від масштабу кільця
       var bsz = Math.ceil(56 / vals.ringScale);
       // на телефоні кнопки наполовину під кільцем, у кутах поза колом; на ПК — у нижніх кутах
-      vals.btn = { size: bsz, inset: mob ? 0 : 4, bottom: mob ? mob.bottom : 4, radius: Math.round(bsz * 0.22), icon: Math.round(bsz * 0.46) };
+      vals.btn = { size: bsz, inset: mob ? 0 : 4, bottom: mob ? mob.bottom : 4, radius: Math.round(cssPx('--r-btn', 8) / vals.ringScale), icon: Math.round(bsz * 0.46) };
       vals.metricBtn = { label: isH ? 'Показати температуру' : 'Показати вологість', pressed: isH ? 'true' : 'false', showDrop: !isH, showTherm: isH };
       vals.toggleMetric = function () { self.innerClick = true; self.setState({ metric: isH ? 't' : 'h', hover: null, pinned: null }); };
       vals.hourMode = hourMode; vals.dayMode = !hourMode;
@@ -346,6 +352,7 @@ class Component extends DCLogic {
 // ============================================================
 //  Старт
 // ============================================================
+if (BG_ANIMATE) document.body.classList.add('bg-anim');
 tplRoot = document.getElementById('tpl').content;
 appEl = document.getElementById('app');
 comp = new Component({});
