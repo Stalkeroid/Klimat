@@ -174,7 +174,7 @@ class Component extends DCLogic {
         if (Object.keys(self.ptrs).length < 2) self.pinch = null;
         self.drag = null; if (self.state.dragging) self.setState({ dragging: false });
       },
-      ringT: '', ringMove: function () {}, ringAria: '', bars: [], grid: [], nowDot: { x: 0, y: 0, op: 0 }, center: { code: '', temp: '', sub: '', color: '#fff' },
+      ringScale: 1, ringMove: function () {}, ringAria: '', bars: [], grid: [], nowDot: { x: 0, y: 0, op: 0 }, center: { code: '', temp: '', sub: '', color: '#fff' },
       det: { code: '', name: '', now: '', avg: '', min: '', max: '', minAt: '', maxAt: '', hum: '', color: '#fff', line: '', area: '', dot: { x: 0, y: 0 }, gridY: [], xStart: '', xMid: '', delta: '', chartAria: '' }
     };
 
@@ -184,8 +184,8 @@ class Component extends DCLogic {
       var tf = finite(ts);
       var mn = tf.length ? Math.min.apply(null, tf) : NaN, mx = tf.length ? Math.max.apply(null, tf) : NaN;
       var mean = tf.length ? tf.reduce(function (a, b) { return a + b; }, 0) / tf.length : NaN;
-      // кільце компенсує зум кімнати, щоб лишатися одного розміру
-      vals.ringT = bb(s.pos, 90) + ' scale(' + ((window.innerWidth <= 700 ? 1.6 : 1.4) / st.zoom).toFixed(3) + ')';
+      // кільце — окремий 2D-елемент поверх сцени, від зуму кімнати не залежить
+      vals.ringScale = window.innerWidth <= 700 ? 1 : 1.4;
       var hourMode = st.hourView != null, segs, N, now = new Date(self.now), havg = NaN;
       if (!hourMode) {
         N = 24;
