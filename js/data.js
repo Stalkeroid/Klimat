@@ -29,25 +29,26 @@ function showSetup(msg) {
 
 
 // Читає канал за останні ~25 годин. Повертає { raw, hum, lastTs } або null, якщо ключ невірний.
-// raw[i] — відсортований масив { ts, t } для датчика i, hum[i] — остання вологість.
+// raw[i] / rawH[i] — відсортовані масиви { ts, t } температури / вологості датчика i, hum[i] — остання вологість.
 async function fetchFeeds(key) {
   var url = 'https://api.thingspeak.com/channels/' + CHANNEL_ID + '/feeds.json?api_key=' + encodeURIComponent(key) + '&minutes=1500&results=8000';
   var r = await fetch(url, { cache: 'no-store' });
   var j = r.ok ? await r.json() : null;
   if (!j || !j.feeds) return null;
-  var raw = SENSORS.map(function () { return []; }), hum = SENSORS.map(function () { return NaN; }), lastTs = null;
+  var raw = SENSORS.map(function () { return []; }), rawH = SENSORS.map(function () { return []; }), hum = SENSORS.map(function () { return NaN; }), lastTs = null;
   j.feeds.forEach(function (fd) {
     var ts = Date.parse(fd.created_at);
     if (!isFinite(ts)) return;
     SENSORS.forEach(function (s, i) {
       var t = parseFloat(fd[s.fT]), h = parseFloat(fd[s.fH]);
       if (isFinite(t)) raw[i].push({ ts: ts, t: t });
-      if (isFinite(h)) hum[i] = h;
+      if (isFinite(h)) { hum[i] = h; rawH[i].push({ ts: ts, t: h }); }
     });
     if (lastTs == null || ts > lastTs) lastTs = ts;
   });
-  raw.forEach(function (a) { a.sort(function (x, y) { return x.ts - y.ts; }); });
-  return { raw: raw, hum: hum, lastTs: lastTs };
+  raw.concat(rawH).forEach(function (a) { a.sort(function (x, y) { return x.ts - y.ts; }); });
+  hum = rawH.map(latestOf);
+  return { raw: raw, rawH: rawH, hum: hum, lastTs: lastTs };
 }
 
 // Останній (поточний) показник датчика, округлений до 0,1; NaN, якщо даних немає

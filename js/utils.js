@@ -23,3 +23,21 @@ function wedge(r0, r1, a0, a1) {
   return 'M' + p1 + 'L' + p2 + 'A' + r1 + ' ' + r1 + ' 0 0 1 ' + p3 + 'L' + p4 + 'A' + r0 + ' ' + r0 + ' 0 0 0 ' + p1 + 'Z';
 }
 function finite(arr) { return arr.filter(function (x) { return isFinite(x); }); }
+
+// Вологість: шкала 0–100 %, від сухого (бурштиновий) до вологого (синій)
+var HSTOPS = [[0, [233, 180, 90]], [30, [233, 213, 138]], [45, [124, 196, 228]], [70, [88, 140, 230]], [100, [70, 90, 210]]];
+function humColor(h, a) {
+  if (!isFinite(h)) return a == null ? '#5A6475' : 'rgba(90,100,117,' + a + ')';
+  var c = HSTOPS[HSTOPS.length - 1][1];
+  for (var i = 0; i < HSTOPS.length - 1; i++) {
+    if (h >= HSTOPS[i][0] && h < HSTOPS[i + 1][0]) {
+      var u2 = (h - HSTOPS[i][0]) / (HSTOPS[i + 1][0] - HSTOPS[i][0]);
+      c = [0, 1, 2].map(function (j) { return Math.round(HSTOPS[i][1][j] + (HSTOPS[i + 1][1][j] - HSTOPS[i][1][j]) * u2); });
+      break;
+    }
+  }
+  if (h < 0) c = HSTOPS[0][1];
+  return a == null ? 'rgb(' + c.join(',') + ')' : 'rgba(' + c.join(',') + ',' + a + ')';
+}
+function fmtH(h) { return isFinite(h) ? h.toFixed(1).replace('.', ',') + '%' : '—'; }
+function radH(h) { var n = Math.max(0, Math.min(1, h / 100)); return 80 + n * 62; }

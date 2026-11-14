@@ -3,16 +3,18 @@
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { sel: null, dYaw: 0, dPitch: 0, dragging: false, hover: null, pinned: null, hourView: null, status: 'loading', zoom: 1 };
+    this.state = { sel: null, dYaw: 0, dPitch: 0, dragging: false, hover: null, pinned: null, hourView: null, status: 'loading', zoom: 1, metric: 't' };
     this.ptrs = {};
     this.pinch = null;
     this.innerClick = false;
     this.now = Date.now();
     this.room = buildRoom();
     this.raw = SENSORS.map(function () { return []; });
+    this.rawH = SENSORS.map(function () { return []; });
     this.hum = SENSORS.map(function () { return NaN; });
     this.lastTs = null;
     this.data = buildReal(this.raw, this.now);
+    this.dataH = buildReal(this.rawH, this.now);
     this.drag = null;
     this.moved = false;
   }
@@ -29,7 +31,9 @@ class Component extends DCLogic {
       }
       this.raw = res.raw; this.hum = res.hum; this.lastTs = res.lastTs;
       this.now = Date.now();
+      this.rawH = res.rawH;
       this.data = buildReal(res.raw, this.now);
+      this.dataH = buildReal(res.rawH, this.now);
       this.setState({ status: 'ok' });
     } catch (e) {
       this.now = Date.now();
@@ -175,7 +179,7 @@ class Component extends DCLogic {
         if (Object.keys(self.ptrs).length < 2) self.pinch = null;
         self.drag = null; if (self.state.dragging) self.setState({ dragging: false });
       },
-      ringScale: 1, ringMove: function () {}, ringAria: '', bars: [], grid: [], nowDot: { x: 0, y: 0, op: 0 }, center: { code: '', temp: '', sub: '', color: '#fff' },
+      ringScale: 1, btn: { size: 56, inset: 4, radius: 12, icon: 26 }, metricBtn: { label: '', pressed: 'false', showDrop: true, showTherm: false }, toggleMetric: function () {}, ringMove: function () {}, ringAria: '', bars: [], grid: [], nowDot: { x: 0, y: 0, op: 0 }, center: { code: '', temp: '', sub: '', color: '#fff' },
       det: { code: '', name: '', now: '', avg: '', min: '', max: '', minAt: '', maxAt: '', hum: '', color: '#fff', line: '', area: '', dot: { x: 0, y: 0 }, gridY: [], xStart: '', xMid: '', delta: '', chartAria: '' }
     };
 
@@ -186,20 +190,27 @@ class Component extends DCLogic {
       var mn = tf.length ? Math.min.apply(null, tf) : NaN, mx = tf.length ? Math.max.apply(null, tf) : NaN;
       var mean = tf.length ? tf.reduce(function (a, b) { return a + b; }, 0) / tf.length : NaN;
       // кільце — окремий 2D-елемент поверх сцени, від зуму кімнати не залежить
-      vals.ringScale = window.innerWidth <= 700 ? 1.05 : 1.4;   // CSS zoom: малюється чітко, без розмиття
+      // CSS zoom: малюється чітко, без розмиття. На вузькому екрані — не ширше за область з кімнатою
+      var stg = document.querySelector('.stage');
+      vals.ringScale = window.innerWidth <= 700 ? Math.max(0.6, Math.min(1.05, (((stg && stg.clientWidth) || 340) - 8) / 332)) : 1.4;
+      // що показує кільце: температуру ('t') чи вологість ('h')
+      var isH = st.metric === 'h';
+      var rdat = isH ? self.dataH[sel] : d, rawR = isH ? self.rawH[sel] : self.raw[sel];
+      var vfmt = isH ? fmtH : fmt, vcol = isH ? humColor : tempColor, vrad = isH ? radH : rad;
+      var curR = isH ? latestOf(self.rawH[sel]) : cur[sel];
       var hourMode = st.hourView != null, segs, N, now = new Date(self.now), havg = NaN;
       if (!hourMode) {
         N = 24;
         segs = [];
         for (var hs = 0; hs < 24; hs++) segs.push({ future: true, t: null, label: hh(hs) + '–' + hh((hs + 1) % 24) });
-        d.forEach(function (p, k) {
-          if (p.hd <= d[23].hd && !p.filled && isFinite(p.t))
+        rdat.forEach(function (p, k) {
+          if (p.hd <= rdat[23].hd && !p.filled && isFinite(p.t))
             segs[p.hd] = { future: false, t: p.t, label: hh(p.hd) + '–' + hh((p.hd + 1) % 24), isNow: k === 23 };
         });
       } else {
         // реальні 5-хвилинні показники за обрану годину
         N = 12;
-        var hk = st.hourView, hpnt = d[hk], hs0 = hpnt.start, rawS = self.raw[sel];
+        var hk = st.hourView, hpnt = rdat[hk], hs0 = hpnt.start, rawS = rawR;
         var avail = hk === 23 ? Math.floor(now.getMinutes() / 5) + 1 : 12;
         var sums = [], cnts = [];
         for (var z = 0; z < 12; z++) { sums.push(0); cnts.push(0); }
@@ -241,31 +252,36 @@ class Component extends DCLogic {
         var h = kAt(e); if (!h || h.k == null) return;
         self.setState({ pinned: self.state.pinned === h.k ? null : h.k });
       };
-      vals.ringAria = hourMode ? 'Температура ' + s.name + ' за годину ' + segs[0].label.slice(0, 5) + ', кожні 5 хвилин' : 'Кільцевий графік температури ' + s.name + ' за сьогодні';
+      vals.ringAria = hourMode ? (isH ? 'Вологість ' : 'Температура ') + s.name + ' за годину ' + segs[0].label.slice(0, 5) + ', кожні 5 хвилин' : 'Кільцевий графік ' + (isH ? 'вологості ' : 'температури ') + s.name + ' за сьогодні';
       var eff = st.hover != null ? st.hover : st.pinned;
       vals.bars = segs.map(function (g, k) {
         var a0 = k * segStep - 90 + gap, a1 = (k + 1) * segStep - 90 - gap;
         if (g.future) return { d: wedge(72, 104, a0, a1), fill: '#2A3240', op: 1, stroke: 'none', hover: function () {} };
         var isHover = eff === k;
         return {
-          d: wedge(72, rad(g.t), a0, a1), fill: tempColor(g.t),
+          d: wedge(72, vrad(g.t), a0, a1), fill: vcol(g.t),
           op: eff == null ? 1 : (isHover ? 1 : 0.4),
           stroke: g.isNow || isHover ? '#F2F4F8' : 'none',
           hover: function () { if (self.state.hover !== k) self.setState({ hover: k }); }
         };
       });
-      vals.grid = [10, 20, 30, 40, 50].map(function (t) { return { r: rad(t) }; });
+      vals.grid = (isH ? [20, 40, 60, 80] : [10, 20, 30, 40, 50]).map(function (t) { return { r: vrad(t) }; });
       var rlab = hourMode ? [':00', ':15', ':30', ':45'] : ['00', '06', '12', '18'];
       vals.rl = { a: rlab[0], b: rlab[1], c: rlab[2], d: rlab[3] };
       var nowIdx = -1; segs.forEach(function (g, k) { if (g.isNow) nowIdx = k; });
-      var nd = nowIdx >= 0 ? pol(rad(segs[nowIdx].t) + 6, nowIdx * segStep - 90 + segStep / 2) : [0, 0];
+      var nd = nowIdx >= 0 ? pol(vrad(segs[nowIdx].t) + 6, nowIdx * segStep - 90 + segStep / 2) : [0, 0];
       vals.nowDot = { x: nd[0], y: nd[1], op: nowIdx >= 0 ? 1 : 0 };
       var shown = eff != null ? segs[eff] : null;
-      var ct = shown ? shown.t : (hourMode ? havg : cur[sel]);
+      var ct = shown ? shown.t : (hourMode ? havg : curR);
       vals.center = {
-        code: s.name.toUpperCase(), temp: fmt(ct), color: tempColor(ct),
+        code: s.name.toUpperCase() + (isH ? ' · ВОЛОГІСТЬ' : ''), temp: vfmt(ct), color: vcol(ct),
         sub: shown ? shown.label : (hourMode ? hh(d[st.hourView].hd) + '–' + hh((d[st.hourView].hd + 1) % 24) + ' · сер.' : 'зараз')
       };
+      // кутові кнопки: не менше ~56 px на екрані незалежно від масштабу кільця
+      var bsz = Math.ceil(56 / vals.ringScale);
+      vals.btn = { size: bsz, inset: 4, radius: Math.round(bsz * 0.22), icon: Math.round(bsz * 0.46) };
+      vals.metricBtn = { label: isH ? 'Показати температуру' : 'Показати вологість', pressed: isH ? 'true' : 'false', showDrop: !isH, showTherm: isH };
+      vals.toggleMetric = function () { self.innerClick = true; self.setState({ metric: isH ? 't' : 'h', hover: null, pinned: null }); };
       vals.hourMode = hourMode; vals.dayMode = !hourMode;
       var lo = isFinite(mn) ? Math.floor(mn - 0.3) : 0, hi = isFinite(mx) ? Math.ceil(mx + 0.3) : 1;
       function X(k) { return 6 + k * (308 / 23); }

@@ -6,7 +6,7 @@
 <title>Клімат кімнати</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="css/style.css?v=9">
+<link rel="stylesheet" href="css/style.css?v=10">
 </head>
 <body>
 <div id="app"></div>
@@ -77,14 +77,23 @@
           <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: #E6EAF2; pointer-events: none; position: absolute; white-space: nowrap; left: 306px; top: 143px; transform: translateX(-50%)">{{rl.b}}</span>
           <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: #E6EAF2; pointer-events: none; position: absolute; white-space: nowrap; left: 171px; top: 308px">{{rl.c}}</span>
           <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: #E6EAF2; pointer-events: none; position: absolute; white-space: nowrap; left: 26px; top: 143px; transform: translateX(-50%)">{{rl.d}}</span>
+          <!-- кутові кнопки кільця: ліворуч — температура/вологість, праворуч — доба/година -->
+          <button class="pin-btn" onClick="{{toggleMetric}}" aria-label="{{metricBtn.label}}" title="{{metricBtn.label}}" aria-pressed="{{metricBtn.pressed}}" style="position: absolute; bottom: {{btn.inset}}px; width: {{btn.size}}px; height: {{btn.size}}px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: {{btn.radius}}px; border: 1px solid rgba(255,255,255,0.16); background: #182233; color: #C9D1DE; cursor: pointer; left: {{btn.inset}}px">
+            <sc-if value="{{metricBtn.showDrop}}">
+            <svg width="{{btn.icon}}" height="{{btn.icon}}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c3.5 4.4 6 7.7 6 11a6 6 0 0 1-12 0c0-3.3 2.5-6.6 6-11z"></path></svg>
+            </sc-if>
+            <sc-if value="{{metricBtn.showTherm}}">
+            <svg width="{{btn.icon}}" height="{{btn.icon}}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z"></path></svg>
+            </sc-if>
+          </button>
           <sc-if value="{{dayMode}}">
-          <button class="pin-btn" onClick="{{openHour}}" aria-label="Детальний графік за цю годину" title="Детальний графік за цю годину" style="position: absolute; left: 50%; top: 50%; margin-left: -11px; margin-top: 38px; width: 22px; height: 22px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 6px; border: 1px solid rgba(255,255,255,0.16); background: #182233; color: #C9D1DE; cursor: pointer">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"></path><path d="M7 15l4-5 3 3 5-6"></path></svg>
+          <button class="pin-btn" onClick="{{openHour}}" aria-label="Детальний графік за цю годину" title="Детальний графік за цю годину" style="position: absolute; bottom: {{btn.inset}}px; width: {{btn.size}}px; height: {{btn.size}}px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: {{btn.radius}}px; border: 1px solid rgba(255,255,255,0.16); background: #182233; color: #C9D1DE; cursor: pointer; right: {{btn.inset}}px">
+            <svg width="{{btn.icon}}" height="{{btn.icon}}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"></path><path d="M7 15l4-5 3 3 5-6"></path></svg>
           </button>
           </sc-if>
           <sc-if value="{{hourMode}}">
-          <button class="pin-btn" onClick="{{closeHour}}" aria-label="Назад до графіка за добу" title="Назад до графіка за добу" style="position: absolute; left: 50%; top: 50%; margin-left: -11px; margin-top: 38px; width: 22px; height: 22px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 6px; border: 1px solid rgba(255,255,255,0.16); background: #182233; color: #C9D1DE; cursor: pointer">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+          <button class="pin-btn" onClick="{{closeHour}}" aria-label="Назад до графіка за добу" title="Назад до графіка за добу" style="position: absolute; bottom: {{btn.inset}}px; width: {{btn.size}}px; height: {{btn.size}}px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: {{btn.radius}}px; border: 1px solid rgba(255,255,255,0.16); background: #182233; color: #C9D1DE; cursor: pointer; right: {{btn.inset}}px">
+            <svg width="{{btn.icon}}" height="{{btn.icon}}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
           </button>
           </sc-if>
         </div>
@@ -167,11 +176,11 @@
 </div>
 </template>
 
-<script src="js/config.js?v=9"></script>
-<script src="js/engine.js?v=9"></script>
-<script src="js/room.js?v=9"></script>
-<script src="js/utils.js?v=9"></script>
-<script src="js/data.js?v=9"></script>
-<script src="js/app.js?v=9"></script>
+<script src="js/config.js?v=10"></script>
+<script src="js/engine.js?v=10"></script>
+<script src="js/room.js?v=10"></script>
+<script src="js/utils.js?v=10"></script>
+<script src="js/data.js?v=10"></script>
+<script src="js/app.js?v=10"></script>
 </body>
 </html>
