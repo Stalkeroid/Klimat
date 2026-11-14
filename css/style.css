@@ -16,7 +16,7 @@ a{color:#7CC4E4}a:hover{color:#A9DCF0}
 #setup input{font:inherit;font-family:'JetBrains Mono',monospace;font-size:15px;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.18);background:#0F1622;color:#F2F4F8}
 #setup button{font:inherit;font-weight:600;min-height:44px;border-radius:10px;border:0;background:#7CC4E4;color:#0B1019;cursor:pointer}
 #setup .err{color:#F59E8B;font-size:13px}
-@media (max-width:700px){.stage{height:580px !important}.legend{left:12px;right:12px !important;justify-content:center;gap:12px !important}.legend-bar{width:64px !important}.hint{display:none !important}}
+@media (max-width:700px){.stage{height:580px !important}.legend{left:14px;right:14px !important;gap:14px !important}.legend-item{flex:1 1 0;min-width:0}.legend-bar{flex:1 1 auto;width:auto !important}.hint{display:none !important}}
 .keyBtn{font:inherit;font-size:12px;background:none;border:0;color:#7CC4E4;cursor:pointer;padding:4px 0;min-height:24px}
 
 /* відгук кнопок кільця */
