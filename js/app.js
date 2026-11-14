@@ -111,11 +111,11 @@ class Component extends DCLogic {
       var isSel = sel === i, c = toCss(s.pos), arr = self.raw[i];
       var stale = !arr.length || Date.now() - arr[arr.length - 1].ts > STALE_MS;
       return {
-        name: s.name, temp: fmt(cur[i]), color: tempColor(cur[i]),
+        name: sensorName(SENSORS.indexOf(s)), temp: fmt(cur[i]), color: tempColor(cur[i]),
         t: 'translate3d(' + c[0] + 'px,' + c[1] + 'px,' + c[2] + 'px)',
         cls: stale ? 'mk--stale' : '',
         op: isSel ? 0 : (sel == null ? 1 : 0.55), pe: isSel ? 'none' : 'auto',
-        aria: s.name + ', ' + fmt(cur[i]) + (stale ? ', дані застарілі' : '') + '. Показати графік',
+        aria: sensorName(SENSORS.indexOf(s)) + ', ' + fmt(cur[i]) + (stale ? ', дані застарілі' : '') + '. Показати графік',
         pick: function () { self.select(i); }
       };
     });
@@ -127,7 +127,7 @@ class Component extends DCLogic {
       var spark = fin.length ? d.map(function (p, k) { return (2 + k * 68 / 23).toFixed(1) + ',' + (23 - (p.t - mn) / span * 20).toFixed(1); }).join(' ') : '';
       var on = sel === i;
       return {
-        code: s.code, name: s.name, temp: fmt(cur[i]), color: tempColor(cur[i]), spark: spark,
+        code: s.code, name: sensorName(SENSORS.indexOf(s)), temp: fmt(cur[i]), color: tempColor(cur[i]), spark: spark,
         hum: isFinite(self.hum[i]) ? 'Н: ' + Math.round(self.hum[i]) + '%' : '',
         bg: on ? 'var(--accent-soft)' : 'var(--surface)', border: on ? 'var(--accent-line)' : 'var(--stroke)',
         pressed: on ? 'true' : 'false',
@@ -141,8 +141,8 @@ class Component extends DCLogic {
     var room = { warm: '—', cool: '—', spread: '—', range: '—' };
     if (curF.length) {
       var hi0 = curF.reduce(function (a, b) { return b.t > a.t ? b : a; }), lo0 = curF.reduce(function (a, b) { return b.t < a.t ? b : a; });
-      room.warm = SENSORS[hi0.i].name + ' · ' + fmt(hi0.t);
-      room.cool = SENSORS[lo0.i].name + ' · ' + fmt(lo0.t);
+      room.warm = sensorName(hi0.i) + ' · ' + fmt(hi0.t);
+      room.cool = sensorName(lo0.i) + ' · ' + fmt(lo0.t);
       room.spread = (hi0.t - lo0.t).toFixed(1).replace('.', ',') + '°';
     }
     if (all.length) room.range = fmt(Math.min.apply(null, all)) + ' – ' + fmt(Math.max.apply(null, all));
@@ -150,13 +150,14 @@ class Component extends DCLogic {
     var badge, badgeColor;
     // індикатор статусу: стан + час останніх даних (замість підзаголовка)
     var tLast = self.lastTs ? ' · ' + hm(self.lastTs) : '';
-    if (st.status === 'loading') { badge = 'ЗАВАНТАЖЕННЯ'; badgeColor = 'var(--text-3)'; }
+    if (st.status === 'ok' && isDemo()) { badge = 'ДЕМО · ВИПАДКОВІ ДАНІ'; badgeColor = 'var(--accent)'; }
+    else if (st.status === 'loading') { badge = 'ЗАВАНТАЖЕННЯ'; badgeColor = 'var(--text-3)'; }
     else if (st.status === 'ok' && self.lastTs && Date.now() - self.lastTs < 15 * 60000) { badge = 'НАЖИВО' + tLast; badgeColor = '#5BC28A'; }
     else if (st.status === 'ok' && self.lastTs) { badge = 'НЕМАЄ ДАНИХ' + tLast; badgeColor = '#E9B44C'; }
     else if (st.status === 'ok') { badge = 'КАНАЛ ПОРОЖНІЙ'; badgeColor = '#E9B44C'; }
     else if (st.status === 'error') { badge = 'НЕМАЄ ЗВ’ЯЗКУ' + tLast; badgeColor = '#E8553F'; }
     else { badge = 'ПОТРІБЕН КЛЮЧ'; badgeColor = '#E8553F'; }
-    var badgeTitle = self.lastTs ? 'Останні дані з ThingSpeak: ' + new Date(self.lastTs).toLocaleString('uk-UA') : 'ThingSpeak';
+    var badgeTitle = isDemo() ? 'Демо-режим: дані згенеровані випадково. Щоб підключити свій канал — «Змінити ключ ThingSpeak»' : self.lastTs ? 'Останні дані з ThingSpeak: ' + new Date(self.lastTs).toLocaleString('uk-UA') : 'ThingSpeak';
 
     var vals = {
       faces: faces, markers: markers, list: list, room: room,
@@ -300,7 +301,7 @@ class Component extends DCLogic {
         if (h.k == null) return;
         self.setState({ pinned: self.state.pinned === h.k ? null : h.k });
       };
-      vals.ringAria = hourMode ? (isH ? 'Вологість ' : 'Температура ') + s.name + ' за годину ' + segs[0].label.slice(0, 5) + ', кожні 5 хвилин' : 'Кільцевий графік ' + (isH ? 'вологості ' : 'температури ') + s.name + ' за сьогодні';
+      vals.ringAria = hourMode ? (isH ? 'Вологість ' : 'Температура ') + sensorName(SENSORS.indexOf(s)) + ' за годину ' + segs[0].label.slice(0, 5) + ', кожні 5 хвилин' : 'Кільцевий графік ' + (isH ? 'вологості ' : 'температури ') + sensorName(SENSORS.indexOf(s)) + ' за сьогодні';
       var eff = st.hover != null ? st.hover : st.pinned;
       vals.bars = segs.map(function (g, k) {
         var a0 = k * segStep - 90 + gap, a1 = (k + 1) * segStep - 90 - gap;
@@ -322,7 +323,7 @@ class Component extends DCLogic {
       var shown = eff != null ? segs[eff] : null;
       var ct = shown ? shown.t : (hourMode ? havg : curR);
       vals.center = {
-        code: s.name.toUpperCase(), mk: isH ? 'Н' : 'Т', temp: vfmt(ct), color: vcol(ct),
+        code: sensorName(SENSORS.indexOf(s)).toUpperCase(), mk: isH ? 'Н' : 'Т', temp: vfmt(ct), color: vcol(ct),
         sub: shown ? shown.label : (hourMode ? hh(d[st.hourView].hd) + '–' + hh((d[st.hourView].hd + 1) % 24) : 'зараз'),
         sub2: !shown && hourMode ? 'середня' : ''
       };
@@ -343,7 +344,7 @@ class Component extends DCLogic {
       for (var g = lo; g <= hi; g += step) gy.push({ y: Y(g).toFixed(1), t: g + '°' });
       var delta = d[23].t - d[0].t;
       vals.det = {
-        code: s.code, name: s.name, now: fmt(cur[sel]), avg: fmt(mean), min: fmt(mn), max: fmt(mx),
+        code: s.code, name: sensorName(SENSORS.indexOf(s)), now: fmt(cur[sel]), avg: fmt(mean), min: fmt(mn), max: fmt(mx),
         minAt: hh(d[minK].hd), maxAt: hh(d[maxK].hd), color: tempColor(cur[sel]),
         hum: isFinite(self.hum[sel]) ? self.hum[sel].toFixed(1).replace('.', ',') + '%' : '—',
         line: line, area: line ? 'M' + X(0).toFixed(1) + ',' + Y(lo).toFixed(1) + ' L' + line.split(' ').join(' L') + ' L' + X(23).toFixed(1) + ',' + Y(lo).toFixed(1) + ' Z' : '',
@@ -351,7 +352,7 @@ class Component extends DCLogic {
         xStart: hh(d[0].hd), xMid: hh(d[12].hd),
         yRange: lo + '…' + hi + '°',
         delta: isFinite(delta) ? (delta >= 0 ? '+' : '−') + Math.abs(delta).toFixed(1).replace('.', ',') + '°' : '—',
-        chartAria: 'Лінійний графік ' + s.name + ' за 24 години, від ' + fmt(mn) + ' до ' + fmt(mx)
+        chartAria: 'Лінійний графік ' + sensorName(SENSORS.indexOf(s)) + ' за 24 години, від ' + fmt(mn) + ' до ' + fmt(mx)
       };
     }
     return vals;
@@ -383,4 +384,9 @@ document.getElementById('setupForm').addEventListener('submit', function (e) {
 document.getElementById('setupCancel').addEventListener('click', hideSetup);
 document.addEventListener('keydown', function (e) {
   if (e.key === 'Escape' && !document.getElementById('setup').hidden && !document.getElementById('setupCancel').hidden) hideSetup();
+});
+
+document.getElementById('setupDemo').addEventListener('click', function () {
+  document.getElementById('keyInput').value = DEMO_KEY;
+  document.getElementById('setupForm').requestSubmit();
 });

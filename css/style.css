@@ -23,6 +23,8 @@ a{color:var(--accent)}
 #setup input:focus{border-color:var(--accent-line)}
 #setup .err{color:var(--danger);font-size:13px;min-height:1em}
 #setup .err:empty{display:none}
+#setup .demo-link{align-self:flex-start;font-family:var(--font-text);font-size:13px;color:var(--accent);background:none;border:0;padding:6px 0;min-height:32px;cursor:pointer;text-align:left;text-decoration:underline;text-decoration-color:var(--accent-line);text-underline-offset:3px}
+#setup .demo-link:hover{color:var(--accent-hover)}
 #setup .actions{display:flex;gap:10px}
 #setup .actions button{flex:1;font-family:var(--font-text);font-size:15px;font-weight:600;min-height:48px;border-radius:var(--r-sm);cursor:pointer;transition:background .12s,transform .08s}
 #setup .actions button:active{transform:scale(.98)}
