@@ -1,0 +1,20 @@
+/* Стилі сторінки. Розмітка — у index.html (<template id="tpl">). */
+body{margin:0;background:#0B1019}
+a{color:#7CC4E4}a:hover{color:#A9DCF0}
+.scene > *{transform-style:preserve-3d}
+@keyframes ringIn{from{opacity:0}to{opacity:1}}
+.ring{animation:ringIn .6s ease .85s both}
+.sensor-btn:focus-visible,.list-btn:focus-visible,.back-btn:focus-visible{outline:2px solid #7CC4E4;outline-offset:3px}
+.list-btn:hover{background:rgba(255,255,255,0.05)}
+.bar{transition:opacity .2s}
+#setup{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(5,8,14,0.82);font-family:Inter,system-ui,sans-serif;color:#E6EAF2;padding:20px;box-sizing:border-box}
+#setup[hidden]{display:none}
+#setup form{max-width:420px;width:100%;background:#121A27;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:12px}
+#setup h2{margin:0;font-family:Manrope,Inter,sans-serif;font-size:20px}
+#setup p{margin:0;font-size:14px;line-height:1.5;color:#C9D1DE}
+#setup label{font-size:13px;color:#9AA4B5}
+#setup input{font:inherit;font-family:'JetBrains Mono',monospace;font-size:15px;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.18);background:#0F1622;color:#F2F4F8}
+#setup button{font:inherit;font-weight:600;min-height:44px;border-radius:10px;border:0;background:#7CC4E4;color:#0B1019;cursor:pointer}
+#setup .err{color:#F59E8B;font-size:13px}
+@media (max-width:700px){.stage{height:500px !important}.hint{display:none !important}}
+.keyBtn{font:inherit;font-size:12px;background:none;border:0;color:#7CC4E4;cursor:pointer;padding:4px 0;min-height:24px}
