@@ -1,5 +1,31 @@
 // Логіка дашборда: стан, камера, кільце, панелі; запуск і періодичне оновлення.
 // Розмітка — у index.html, дані — data.js, кімната — room.js.
+// Телефон: підбирає масштаб кільця і висоту кнопок під фактичний розмір області з кімнатою.
+// Кнопка (56 px) має бути однаково віддалена від кола і від шкал унизу; якщо місця замало — кільце зменшується.
+function mobileRingLayout() {
+  var stg = document.querySelector('.stage'), lg = document.querySelector('.legend');
+  var W = (stg && stg.clientWidth) || 340, H = (stg && stg.clientHeight) || 464;
+  var yL = lg ? lg.offsetTop : H - 28;              // верх шкал відносно області
+  var B = 56, cx = W / 2, cy = H / 2;
+  var best = null;
+  for (var z = Math.min(1.05, (W - 8) / 332); z >= 0.55; z -= 0.01) {
+    var xIn = cx - 166 * z + B;                      // внутрішній край лівої кнопки
+    var top = null, score = -1e9;
+    for (var t = cy; t + B <= yL; t += 1) {
+      var gapL = yL - (t + B);
+      var gapC = Math.hypot(cx - xIn, cy - t) - 164 * z;
+      var m = Math.min(gapL, gapC);
+      if (m > score) { score = m; top = t; }
+    }
+    if (top != null) best = { z: z, top: top, score: score };
+    if (top != null && score >= 10) break;           // щонайменше 10 px до кола і до шкал
+  }
+  if (!best) return { z: 0.8, bottom: 4 };
+  // нижній край кнопки відносно нижнього краю квадрата кільця, в одиницях кільця
+  var sqBottom = cy + 166 * best.z;
+  return { z: best.z, bottom: Math.round(-((best.top + B) - sqBottom) / best.z) };
+}
+
 class Component extends DCLogic {
   constructor(props) {
     super(props);
@@ -192,9 +218,10 @@ class Component extends DCLogic {
       var mn = tf.length ? Math.min.apply(null, tf) : NaN, mx = tf.length ? Math.max.apply(null, tf) : NaN;
       var mean = tf.length ? tf.reduce(function (a, b) { return a + b; }, 0) / tf.length : NaN;
       // кільце — окремий 2D-елемент поверх сцени, від зуму кімнати не залежить
-      // CSS zoom: малюється чітко, без розмиття. На вузькому екрані — не ширше за область з кімнатою
-      var stg = document.querySelector('.stage');
-      vals.ringScale = window.innerWidth <= 700 ? Math.max(0.6, Math.min(1.05, (((stg && stg.clientWidth) || 340) - 8) / 332)) : 1.4;
+      // CSS zoom: малюється чітко, без розмиття. На ПК — фіксовано 1.4; на телефоні — розрахунок під реальний екран
+      var narrow = window.innerWidth <= 700;
+      var mob = narrow ? mobileRingLayout() : null;
+      vals.ringScale = mob ? mob.z : 1.4;
       // що показує кільце: температуру ('t') чи вологість ('h')
       var isH = st.metric === 'h';
       var rdat = isH ? self.dataH[sel] : d, rawR = isH ? self.rawH[sel] : self.raw[sel];
@@ -287,8 +314,7 @@ class Component extends DCLogic {
       // кутові кнопки: не менше ~56 px на екрані незалежно від масштабу кільця
       var bsz = Math.ceil(56 / vals.ringScale);
       // на телефоні кнопки наполовину під кільцем, у кутах поза колом; на ПК — у нижніх кутах
-      var narrow = window.innerWidth <= 700;
-      vals.btn = { size: bsz, inset: narrow ? 0 : 4, bottom: narrow ? -Math.round(bsz * 0.61) : 4, radius: Math.round(bsz * 0.22), icon: Math.round(bsz * 0.46) };
+      vals.btn = { size: bsz, inset: mob ? 0 : 4, bottom: mob ? mob.bottom : 4, radius: Math.round(bsz * 0.22), icon: Math.round(bsz * 0.46) };
       vals.metricBtn = { label: isH ? 'Показати температуру' : 'Показати вологість', pressed: isH ? 'true' : 'false', showDrop: !isH, showTherm: isH };
       vals.toggleMetric = function () { self.innerClick = true; self.setState({ metric: isH ? 't' : 'h', hover: null, pinned: null }); };
       vals.hourMode = hourMode; vals.dayMode = !hourMode;
