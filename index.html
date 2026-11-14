@@ -6,7 +6,7 @@
 <title>Клімат кімнати</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="css/style.css?v=15">
+<link rel="stylesheet" href="css/style.css?v=16">
 </head>
 <body>
 <div id="app"></div>
@@ -68,11 +68,14 @@
             <circle cx="{{nowDot.x}}" cy="{{nowDot.y}}" r="3.5" fill="#F2F4F8" opacity="{{nowDot.op}}"></circle>
             <circle r="66" fill="#0B1019" stroke="rgba(255,255,255,0.08)" style="pointer-events: none"></circle>
           </svg>
-          <div style="position: absolute; left: 50%; top: 50%; width: 124px; margin-left: -62px; margin-top: -48px; height: 96px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; pointer-events: none; text-align: center">
-            <span style="font-family: Inter, sans-serif; font-size: 10px; letter-spacing: 0.08em; color: #9AA4B5; white-space: nowrap">{{center.code}} · <b style="font-weight: 700; color: #E6EAF2">{{center.mk}}</b></span>
-            <span style="font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 600; line-height: 1.1; color: {{center.color}}">{{center.temp}}</span>
-            <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #C9D1DE; white-space: nowrap">{{center.sub}}</span>
-            <span style="font-family: Inter, sans-serif; font-size: 10px; color: #9AA4B5; white-space: nowrap">{{center.sub2}}</span>
+          <!-- центр кільця: головне значення завжди рівно по центру; підписи над і під ним його не зсувають -->
+          <div style="position: absolute; left: 50%; top: 50%; width: 0; height: 0; pointer-events: none; text-align: center">
+            <span style="position: absolute; left: -62px; width: 124px; bottom: 19px; font-family: Inter, sans-serif; font-size: 10px; letter-spacing: 0.08em; color: #9AA4B5; white-space: nowrap">{{center.code}} · <b style="font-weight: 700; color: #E6EAF2">{{center.mk}}</b></span>
+            <span style="position: absolute; left: -80px; width: 160px; top: -16px; height: 32px; line-height: 32px; font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 600; color: {{center.color}}">{{center.temp}}</span>
+            <span style="position: absolute; left: -62px; width: 124px; top: 19px; display: flex; flex-direction: column; align-items: center; gap: 2px">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #C9D1DE; white-space: nowrap">{{center.sub}}</span>
+              <span style="font-family: Inter, sans-serif; font-size: 10px; color: #9AA4B5; white-space: nowrap">{{center.sub2}}</span>
+            </span>
           </div>
           <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: #E6EAF2; pointer-events: none; position: absolute; white-space: nowrap; left: 171px; top: 11px">{{rl.a}}</span>
           <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: #E6EAF2; pointer-events: none; position: absolute; white-space: nowrap; left: 306px; top: 143px; transform: translateX(-50%)">{{rl.b}}</span>
@@ -176,11 +179,11 @@
 </div>
 </template>
 
-<script src="js/config.js?v=15"></script>
-<script src="js/engine.js?v=15"></script>
-<script src="js/room.js?v=15"></script>
-<script src="js/utils.js?v=15"></script>
-<script src="js/data.js?v=15"></script>
-<script src="js/app.js?v=15"></script>
+<script src="js/config.js?v=16"></script>
+<script src="js/engine.js?v=16"></script>
+<script src="js/room.js?v=16"></script>
+<script src="js/utils.js?v=16"></script>
+<script src="js/data.js?v=16"></script>
+<script src="js/app.js?v=16"></script>
 </body>
 </html>
