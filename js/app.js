@@ -288,7 +288,7 @@ class Component extends DCLogic {
       var bsz = Math.ceil(56 / vals.ringScale);
       // на телефоні кнопки наполовину під кільцем, у кутах поза колом; на ПК — у нижніх кутах
       var narrow = window.innerWidth <= 700;
-      vals.btn = { size: bsz, inset: 4, bottom: narrow ? -Math.round(bsz * 0.48) : 4, radius: Math.round(bsz * 0.22), icon: Math.round(bsz * 0.46) };
+      vals.btn = { size: bsz, inset: narrow ? 0 : 4, bottom: narrow ? -Math.round(bsz * 0.61) : 4, radius: Math.round(bsz * 0.22), icon: Math.round(bsz * 0.46) };
       vals.metricBtn = { label: isH ? 'Показати температуру' : 'Показати вологість', pressed: isH ? 'true' : 'false', showDrop: !isH, showTherm: isH };
       vals.toggleMetric = function () { self.innerClick = true; self.setState({ metric: isH ? 't' : 'h', hover: null, pinned: null }); };
       vals.hourMode = hourMode; vals.dayMode = !hourMode;
