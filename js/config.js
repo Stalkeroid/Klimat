@@ -6,8 +6,8 @@ var READ_KEY   = '';          // можна вписати сюди; інакш�
 var REFRESH_MS = 60000;       // як часто оновлювати дані
 
 var SENSORS = [
-  { id: 'd1', code: 'Д1', name: 'Диван', where: 'на ближньому бильці, біля стіни', pos: [12, 62, 510], cam: { ry: -50, rx: -16, zoom: 70 }, fT: 'field1', fH: 'field2' },
-  { id: 'd2', code: 'Д2', name: 'Батарея', where: 'зверху на батареї під вікном', pos: [104, 76, 7], cam: { ry: 14, rx: -20, zoom: 90 }, fT: 'field3', fH: 'field4' },
-  { id: 'd3', code: 'Д3', name: 'Підвіконня', where: 'на підвіконні, справа', pos: [284, 79, -7], cam: { ry: -10, rx: -20, zoom: 90 }, fT: 'field5', fH: 'field6' },
-  { id: 'd4', code: 'Д4', name: 'Клітка', where: 'передній нижній лівий кут клітки', pos: [331, 53, 438], cam: { ry: 48, rx: -18, zoom: 70 }, fT: 'field7', fH: 'field8' }
+  { id: 'd1', code: 'Д1', name: 'Диван', pos: [12, 62, 510], cam: { ry: -50, rx: -16, zoom: 70 }, fT: 'field1', fH: 'field2' },
+  { id: 'd2', code: 'Д2', name: 'Батарея', pos: [104, 76, 7], cam: { ry: 14, rx: -20, zoom: 90 }, fT: 'field3', fH: 'field4' },
+  { id: 'd3', code: 'Д3', name: 'Вікно', pos: [284, 79, -7], cam: { ry: -10, rx: -20, zoom: 90 }, fT: 'field5', fH: 'field6' },
+  { id: 'd4', code: 'Д4', name: 'Пацючки', pos: [331, 53, 438], cam: { ry: 48, rx: -18, zoom: 70 }, fT: 'field7', fH: 'field8' }
 ];

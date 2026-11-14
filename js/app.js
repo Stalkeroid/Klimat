@@ -64,7 +64,8 @@ class Component extends DCLogic {
       var c = toCss(pos);
       return 'translate3d(' + c[0] + 'px,' + c[1] + 'px,' + c[2] + 'px) rotateY(' + (-ry) + 'deg) rotateX(' + (-rx) + 'deg) translateZ(' + push + 'px)';
     }
-    var cur = data.map(function (d) { return d[23].t; });
+    // «зараз» — останній запис (реальний час); кільце за добу — погодинні середні
+    var cur = self.raw.map(latestOf);
 
     var markers = SENSORS.map(function (s, i) {
       var isSel = sel === i;
@@ -84,8 +85,8 @@ class Component extends DCLogic {
       var spark = fin.length ? d.map(function (p, k) { return (2 + k * 68 / 23).toFixed(1) + ',' + (23 - (p.t - mn) / span * 20).toFixed(1); }).join(' ') : '';
       var on = sel === i;
       return {
-        code: s.code, name: s.name, where: s.where, temp: fmt(cur[i]), color: tempColor(cur[i]), spark: spark,
-        hum: isFinite(self.hum[i]) ? Math.round(self.hum[i]) + '%' : '',
+        code: s.code, name: s.name, temp: fmt(cur[i]), color: tempColor(cur[i]), spark: spark,
+        hum: isFinite(self.hum[i]) ? 'Н: ' + Math.round(self.hum[i]) + '%' : '',
         bg: on ? 'rgba(124,196,228,0.08)' : 'rgba(255,255,255,0.02)', border: on ? 'rgba(124,196,228,0.55)' : 'rgba(255,255,255,0.08)',
         pressed: on ? 'true' : 'false',
         pick: function () { self.moved = false; self.select(i); self.innerClick = false; }
@@ -260,7 +261,7 @@ class Component extends DCLogic {
       var nd = nowIdx >= 0 ? pol(rad(segs[nowIdx].t) + 6, nowIdx * segStep - 90 + segStep / 2) : [0, 0];
       vals.nowDot = { x: nd[0], y: nd[1], op: nowIdx >= 0 ? 1 : 0 };
       var shown = eff != null ? segs[eff] : null;
-      var ct = shown ? shown.t : (hourMode ? havg : d[23].t);
+      var ct = shown ? shown.t : (hourMode ? havg : cur[sel]);
       vals.center = {
         code: s.name.toUpperCase(), temp: fmt(ct), color: tempColor(ct),
         sub: shown ? shown.label : (hourMode ? hh(d[st.hourView].hd) + '–' + hh((d[st.hourView].hd + 1) % 24) + ' · сер.' : 'зараз')
@@ -276,8 +277,8 @@ class Component extends DCLogic {
       for (var g = lo; g <= hi; g += step) gy.push({ y: Y(g).toFixed(1), t: g + '°' });
       var delta = d[23].t - d[0].t;
       vals.det = {
-        code: s.code, name: s.name, now: fmt(d[23].t), avg: fmt(mean), min: fmt(mn), max: fmt(mx),
-        minAt: hh(d[minK].hd), maxAt: hh(d[maxK].hd), color: tempColor(d[23].t),
+        code: s.code, name: s.name, now: fmt(cur[sel]), avg: fmt(mean), min: fmt(mn), max: fmt(mx),
+        minAt: hh(d[minK].hd), maxAt: hh(d[maxK].hd), color: tempColor(cur[sel]),
         hum: isFinite(self.hum[sel]) ? self.hum[sel].toFixed(1).replace('.', ',') + '%' : '—',
         line: line, area: line ? 'M' + X(0).toFixed(1) + ',' + Y(lo).toFixed(1) + ' L' + line.split(' ').join(' L') + ' L' + X(23).toFixed(1) + ',' + Y(lo).toFixed(1) + ' Z' : '',
         dot: { x: X(23).toFixed(1), y: isFinite(d[23].t) ? Y(d[23].t).toFixed(1) : -100 }, gridY: gy,

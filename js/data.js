@@ -9,10 +9,6 @@ function buildReal(raw, now) {
       for (var q = 0; q < arr.length; q++) { var p = arr[q]; if (p.ts >= st && p.ts < en) { sum += p.t; c++; } }
       pts.push({ hd: new Date(st).getHours(), start: st, t: c ? Math.round(sum / c * 10) / 10 : NaN, filled: !c });
     }
-    if (arr.length) {
-      var last = arr[arr.length - 1];
-      if (last.ts >= h0 - 23 * 3600000) pts[23].t = Math.round(last.t * 10) / 10;
-    }
     var v = NaN;
     for (var a = 0; a < 24; a++) { if (isFinite(pts[a].t)) v = pts[a].t; else pts[a].t = v; }
     v = NaN;
@@ -53,3 +49,6 @@ async function fetchFeeds(key) {
   raw.forEach(function (a) { a.sort(function (x, y) { return x.ts - y.ts; }); });
   return { raw: raw, hum: hum, lastTs: lastTs };
 }
+
+// Останній (поточний) показник датчика, округлений до 0,1; NaN, якщо даних немає
+function latestOf(arr) { return arr.length ? Math.round(arr[arr.length - 1].t * 10) / 10 : NaN; }
