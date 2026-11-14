@@ -128,7 +128,6 @@ class Component extends DCLogic {
       stageClick: function () {
         if (self.innerClick) { self.innerClick = false; return; }
         if (self.moved) { self.moved = false; return; }
-        if (self.state.hourView != null) { self.setState({ hourView: null, pinned: self.state.dayPinned != null ? self.state.dayPinned : null, hover: null }); return; }
         if (self.state.sel != null) self.setState({ sel: null, dYaw: 0, dPitch: 0, hover: null, pinned: null, hourView: null });
       },
       openHour: function () {
@@ -170,7 +169,8 @@ class Component extends DCLogic {
         }
         var d = self.drag; if (!d) return;
         var dx = e.clientX - d.x, dy = e.clientY - d.y;
-        if (!self.moved && Math.abs(dx) + Math.abs(dy) < 5) return;
+        // поріг, після якого це вже обертання, а не тап (палець тремтить сильніше за мишу)
+        if (!self.moved && Math.abs(dx) + Math.abs(dy) < (e.pointerType === 'mouse' ? 5 : 12)) return;
         self.moved = true;
         self.setState({ dragging: true, dYaw: d.dy + dx * 0.25, dPitch: d.dp - dy * 0.2 });
       },
@@ -179,7 +179,7 @@ class Component extends DCLogic {
         if (Object.keys(self.ptrs).length < 2) self.pinch = null;
         self.drag = null; if (self.state.dragging) self.setState({ dragging: false });
       },
-      ringScale: 1, btn: { size: 56, inset: 4, radius: 12, icon: 26 }, metricBtn: { label: '', pressed: 'false', showDrop: true, showTherm: false }, toggleMetric: function () {}, ringMove: function () {}, ringAria: '', bars: [], grid: [], nowDot: { x: 0, y: 0, op: 0 }, center: { code: '', temp: '', sub: '', color: '#fff' },
+      ringScale: 1, btn: { size: 56, inset: 4, bottom: 4, radius: 12, icon: 26 }, metricBtn: { label: '', pressed: 'false', showDrop: true, showTherm: false }, toggleMetric: function () {}, ringMove: function () {}, ringAria: '', bars: [], grid: [], nowDot: { x: 0, y: 0, op: 0 }, center: { code: '', temp: '', sub: '', color: '#fff' },
       det: { code: '', name: '', now: '', avg: '', min: '', max: '', minAt: '', maxAt: '', hum: '', color: '#fff', line: '', area: '', dot: { x: 0, y: 0 }, gridY: [], xStart: '', xMid: '', delta: '', chartAria: '' }
     };
 
@@ -243,13 +243,17 @@ class Component extends DCLogic {
         }
         return { k: k, r: r };
       }
+      // наведення — лише мишею; на сенсорному екрані значення закріплюється тапом
       vals.ringMove = function (e) {
+        if (e.pointerType !== 'mouse') return;
         var h = kAt(e); if (!h) return;
         if (self.state.hover !== h.k) self.setState({ hover: h.k });
       };
       vals.ringClick = function (e) {
+        var h = kAt(e); if (!h) return;
+        if (h.r > 164) return;            // поза колом — нехай клік закриє статистику
         self.innerClick = true;
-        var h = kAt(e); if (!h || h.k == null) return;
+        if (h.k == null) return;
         self.setState({ pinned: self.state.pinned === h.k ? null : h.k });
       };
       vals.ringAria = hourMode ? (isH ? 'Вологість ' : 'Температура ') + s.name + ' за годину ' + segs[0].label.slice(0, 5) + ', кожні 5 хвилин' : 'Кільцевий графік ' + (isH ? 'вологості ' : 'температури ') + s.name + ' за сьогодні';
@@ -262,7 +266,7 @@ class Component extends DCLogic {
           d: wedge(72, vrad(g.t), a0, a1), fill: vcol(g.t),
           op: eff == null ? 1 : (isHover ? 1 : 0.4),
           stroke: g.isNow || isHover ? '#F2F4F8' : 'none',
-          hover: function () { if (self.state.hover !== k) self.setState({ hover: k }); }
+          hover: function (e) { if (e.pointerType !== 'mouse') return; if (self.state.hover !== k) self.setState({ hover: k }); }
         };
       });
       vals.grid = (isH ? [20, 40, 60, 80] : [10, 20, 30, 40, 50]).map(function (t) { return { r: vrad(t) }; });
@@ -279,7 +283,9 @@ class Component extends DCLogic {
       };
       // кутові кнопки: не менше ~56 px на екрані незалежно від масштабу кільця
       var bsz = Math.ceil(56 / vals.ringScale);
-      vals.btn = { size: bsz, inset: 4, radius: Math.round(bsz * 0.22), icon: Math.round(bsz * 0.46) };
+      // на телефоні кнопки під кільцем, щоб не налазили на нього; на ПК — у нижніх кутах
+      var narrow = window.innerWidth <= 700;
+      vals.btn = { size: bsz, inset: 4, bottom: narrow ? -(bsz + 10) : 4, radius: Math.round(bsz * 0.22), icon: Math.round(bsz * 0.46) };
       vals.metricBtn = { label: isH ? 'Показати температуру' : 'Показати вологість', pressed: isH ? 'true' : 'false', showDrop: !isH, showTherm: isH };
       vals.toggleMetric = function () { self.innerClick = true; self.setState({ metric: isH ? 't' : 'h', hover: null, pinned: null }); };
       vals.hourMode = hourMode; vals.dayMode = !hourMode;
