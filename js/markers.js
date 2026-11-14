@@ -1,10 +1,9 @@
 // Мітки датчиків: плаский шар поверх 3D-кімнати.
 // У 3D-сцені стоять невидимі «якорі» (.anchor) у точках датчиків; тут ми щокадру беремо їхнє положення
 // на екрані й ставимо туди мітки (.mk). Так мітки завжди одного розміру, чіткі й зручні для пальця.
-// Якщо таблички налазять одна на одну — виносна лінія (leader) подовжується, щоб їх розвести.
+// Якщо таблички налазять одна на одну — задня плавно стає напівпрозорою (мітки не стрибають).
 
-var MK_LEAD = 26;        // базова довжина виносної лінії, px
-var MK_GAP = 6;          // мінімальний проміжок між табличками, px
+var MK_LEAD = 26;        // довжина виносної лінії, px (як --lead у css/style.css)
 var MK_BRACKET = 11;     // половина розміру рамки-прицілу, px
 
 function placeMarkers() {
@@ -21,25 +20,23 @@ function placeMarkers() {
     items.push({ el: mks[i], x: x, y: y, w: tag ? tag.offsetWidth : 70, h: tag ? tag.offsetHeight : 40,
                  visible: parseFloat(mks[i].style.opacity || '1') > 0.01 });
   }
-  // розводимо таблички: зліва направо, кожну піднімаємо, поки не перестане перетинатися з уже поставленими
-  var order = items.map(function (_, k) { return k; }).sort(function (a, b) { return items[a].x - items[b].x; });
-  var placed = [];
-  order.forEach(function (k) {
-    var it = items[k], lead = MK_LEAD;
+  // перекриття: таблички не рухаємо. Та, що далі (вище на екрані — глибше в кімнаті), плавно стає напівпрозорою,
+  // ближча малюється поверх. Коли перекриття зникає — прозорість плавно повертається.
+  var boxes = items.map(function (it) {
+    return { x0: it.x - it.w / 2, x1: it.x + it.w / 2, y1: it.y - MK_BRACKET - MK_LEAD, y0: it.y - MK_BRACKET - MK_LEAD - it.h };
+  });
+  items.forEach(function (it, k) {
+    var behind = false;
     if (it.visible) {
-      for (var step = 0; step < 6; step++) {
-        var box = { x0: it.x - it.w / 2, x1: it.x + it.w / 2, y1: it.y - MK_BRACKET - lead, y0: it.y - MK_BRACKET - lead - it.h };
-        var hit = placed.filter(function (p) {
-          return box.x0 < p.x1 + MK_GAP && box.x1 > p.x0 - MK_GAP && box.y0 < p.y1 + MK_GAP && box.y1 > p.y0 - MK_GAP;
-        });
-        if (!hit.length) { placed.push(box); break; }
-        // підняти над найвищою з тих, що заважають
-        var top = Math.min.apply(null, hit.map(function (p) { return p.y0; }));
-        lead = it.y - MK_BRACKET - top + MK_GAP;
+      for (var q = 0; q < items.length; q++) {
+        if (q === k || !items[q].visible || items[q].y <= it.y) continue;   // перекрити може лише ближча (нижча) мітка
+        var a = boxes[k], b = boxes[q];
+        if (a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0) { behind = true; break; }
       }
     }
     it.el.style.transform = 'translate(' + it.x.toFixed(1) + 'px,' + it.y.toFixed(1) + 'px)';
-    it.el.style.setProperty('--lead', Math.round(lead) + 'px');
+    it.el.style.zIndex = String(Math.round(it.y) + 1000);
+    it.el.classList.toggle('mk--behind', behind);
   });
 }
 

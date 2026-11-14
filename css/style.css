@@ -57,11 +57,11 @@ a{color:var(--accent)}
   background-repeat:no-repeat}
 .mk-pt i::after{content:"";position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c)}
 /* виносна лінія від рамки до таблички */
-.mk-lead{position:absolute;left:-.5px;bottom:11px;width:1px;height:var(--lead,26px);background:linear-gradient(to top,var(--c),rgba(255,255,255,.18))}
+.mk-lead{position:absolute;left:-.5px;bottom:11px;width:1px;height:var(--lead,26px);transition:opacity .2s ease;background:linear-gradient(to top,var(--c),rgba(255,255,255,.18))}
 /* табличка: назва + значення; кольорова смужка ліворуч; зона дотику ≥ 48 px */
 .mk-tag{position:absolute;left:0;bottom:calc(11px + var(--lead,26px));transform:translateX(-50%);display:flex;flex-direction:column;align-items:flex-start;gap:1px;
   padding:5px 10px 5px 12px;min-height:40px;box-sizing:border-box;background:var(--surface-solid);border:1px solid var(--stroke-strong);border-radius:var(--r-sm);
-  box-shadow:inset 3px 0 0 var(--c);cursor:pointer;white-space:nowrap;color:var(--text);text-align:left;-webkit-tap-highlight-color:transparent;transition:border-color .15s}
+  box-shadow:inset 3px 0 0 var(--c);cursor:pointer;white-space:nowrap;color:var(--text);text-align:left;-webkit-tap-highlight-color:transparent;transition:border-color .15s,opacity .2s ease}
 .mk-tag::after{content:"";position:absolute;inset:-5px}
 .mk-tag:hover{border-color:var(--c)}
 .mk-tag:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -71,3 +71,5 @@ a{color:var(--accent)}
 .mk--stale .mk-val{color:var(--text-3)}
 .mk--stale .mk-pt i,.mk--stale .mk-lead{opacity:.45}
 .mk--stale .mk-tag{box-shadow:inset 3px 0 0 var(--text-4)}
+.mk--behind .mk-tag,.mk--behind .mk-lead{opacity:.32}
+.mk--behind .mk-tag:hover{opacity:1}

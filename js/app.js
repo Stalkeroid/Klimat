@@ -164,8 +164,8 @@ class Component extends DCLogic {
       hasSel: sel != null, noSel: sel == null, ringOn: sel != null,
       updated: self.lastTs ? hm(self.lastTs) : '—',
       badge: badge, badgeColor: badgeColor, badgeTitle: badgeTitle,
-      // легенда: граничні значення активного режиму — білі (без вибраного датчика активна температура)
-      lg: (sel != null && st.metric === 'h') ? { t: 'var(--text-3)', h: 'var(--text)' } : { t: 'var(--text)', h: 'var(--text-3)' },
+      // легенда: граничні значення активного режиму — білі; поки датчик не вибрано — обидві сірі
+      lg: sel == null ? { t: 'var(--text-3)', h: 'var(--text-3)' } : (st.metric === 'h' ? { t: 'var(--text-3)', h: 'var(--text)' } : { t: 'var(--text)', h: 'var(--text-3)' }),
       changeKey: function () { showSetup(); },
       roomAvg: fmt(avg), roomAvgColor: tempColor(avg),
       stageClick: function () {
