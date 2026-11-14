@@ -1,6 +1,6 @@
 /* =====================================================================
    ТЕМА «Графіт · інженерна»
-   Усі кольори, радіуси, обводки, прозорість і фон-патерн — лише тут.
+   Усі кольори, радіуси, обводки і фон-патерн — лише тут. Без прозорості й розмиття (швидко на телефоні).
    Щоб змінити вигляд, правте значення змінних; решта коду їх тільки використовує.
    ===================================================================== */
 :root {
@@ -12,22 +12,20 @@
   --grid-major-step: 120px;                 /* крок крупної сітки (кратний дрібному) */
   --bg-glow:       rgba(140,200,230,0.06);  /* ледь помітне світло зверху */
 
-  /* --- скляні поверхні (плашки) --- */
-  --surface:       rgba(22,24,28,0.60);     /* панелі, рядки списку, область кімнати */
-  --surface-2:     rgba(8,9,11,0.45);       /* плитки всередині панелей */
-  --surface-solid: rgba(20,22,26,0.92);     /* вікно введення ключа */
-  --blur:          18px;                    /* розмиття під плашками */
-  --saturate:      140%;
+  /* --- поверхні (плашки) — непрозорі, без розмиття: швидко рендеряться --- */
+  --surface:       #15171A;                 /* панелі, рядки списку, область кімнати */
+  --surface-2:     #0E0F12;                 /* плитки всередині панелей */
+  --surface-solid: #15171A;                 /* вікно введення ключа */
 
   /* --- кнопки --- */
-  --button:        rgba(40,43,49,0.78);
-  --button-hover:  rgba(52,56,63,0.85);
-  --button-active: rgba(66,71,80,0.92);
+  --button:        #25282D;
+  --button-hover:  #2F3339;
+  --button-active: #3A3F46;
 
   /* --- обводки --- */
   --stroke:        rgba(255,255,255,0.09);  /* звичайна обводка плашок */
   --stroke-strong: rgba(255,255,255,0.16);  /* кнопки, значок статусу */
-  --highlight:     rgba(255,255,255,0.05);  /* світлий верхній край скла */
+  --highlight:     rgba(255,255,255,0.05);  /* світлий верхній край плашок */
 
   /* --- радіуси (інженерний вигляд — невеликі) --- */
   --r-lg:   10px;   /* область кімнати, великі панелі */
@@ -64,29 +62,26 @@ body { background: var(--bg); }
 body::before {
   content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
   background-image:
+    radial-gradient(ellipse 120% 90% at 50% 20%, transparent 45%, var(--bg) 100%),
     radial-gradient(ellipse 80% 50% at 50% 0%, var(--bg-glow), transparent 70%),
     linear-gradient(var(--grid-major) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
     linear-gradient(var(--grid-minor) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px);
   background-size:
-    100% 100%,
+    100% 100%, 100% 100%,
     var(--grid-major-step) var(--grid-major-step), var(--grid-major-step) var(--grid-major-step),
     var(--grid-step) var(--grid-step), var(--grid-step) var(--grid-step);
-  -webkit-mask-image: radial-gradient(ellipse 120% 90% at 50% 20%, #000 40%, transparent 100%);
-          mask-image: radial-gradient(ellipse 120% 90% at 50% 20%, #000 40%, transparent 100%);
 }
 /* необов'язковий рух фону (BG_ANIMATE у js/config.js). Повільний дрейф сітки */
 body.bg-anim::before { animation: gridDrift 90s linear infinite; }
-@keyframes gridDrift { to { background-position: 0 0, 0 var(--grid-major-step), var(--grid-major-step) 0, 0 var(--grid-major-step), var(--grid-major-step) 0; } }
+@keyframes gridDrift { to { background-position: 0 0, 0 0, 0 var(--grid-major-step), var(--grid-major-step) 0, 0 var(--grid-major-step), var(--grid-major-step) 0; } }
 @media (prefers-reduced-motion: reduce) { body.bg-anim::before { animation: none; } }
 
-/* --- скло --- */
+/* --- плашки (клас лишився .glass з історичних причин) --- */
 .glass {
   background: var(--surface);
   border: 1px solid var(--stroke);
   box-shadow: inset 0 1px 0 var(--highlight);
-  -webkit-backdrop-filter: blur(var(--blur)) saturate(var(--saturate));
-          backdrop-filter: blur(var(--blur)) saturate(var(--saturate));
 }
 .tile { background: var(--surface-2); border-radius: var(--r-sm); }

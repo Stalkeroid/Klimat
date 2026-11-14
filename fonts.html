@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Шрифти — порівняння</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&family=Fira+Sans:wght@400;600;700&family=Fira+Code:wght@400;600&family=Roboto+Condensed:wght@400;600;700&family=Roboto+Mono:wght@400;600&family=Exo+2:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Oswald:wght@400;600&family=PT+Sans:wght@400;700&family=PT+Mono&family=Manrope:wght@600;700&family=Inter:wght@400;600&display=swap">
+<link rel="stylesheet" href="css/theme.css">
+<style>
+body{margin:0;color:var(--text);font-family:Inter,system-ui,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:28px 20px 40px}
+h1{margin:0 0 6px;font-size:22px}
+.lead{margin:0 0 22px;color:var(--text-3);font-size:14px;line-height:1.5}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--stroke);box-shadow:inset 0 1px 0 var(--highlight);border-radius:var(--r-lg);padding:18px;display:flex;flex-direction:column;gap:14px}
+.tag{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-4);letter-spacing:.06em}
+.ttl{font-size:26px;font-weight:700;letter-spacing:-.01em;margin:0}
+.sub{font-size:13px;color:var(--text-3);margin:0}
+.row{display:flex;align-items:center;gap:12px;background:var(--surface-2);border:1px solid var(--stroke);border-radius:var(--r-md);padding:10px 12px}
+.dot{width:10px;height:10px;border-radius:50%;background:#EEC77A;box-shadow:0 0 10px #EEC77A}
+.nm{flex:1;font-weight:600;font-size:15px}
+.val{text-align:right;display:flex;flex-direction:column}
+.big{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.hum{font-size:11px;color:var(--cold)}
+.ring{display:flex;align-items:center;gap:16px}
+.disc{width:120px;height:120px;border-radius:50%;background:var(--ring-core);border:1px solid var(--stroke);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex:none}
+.disc .c{font-size:9px;letter-spacing:.08em;color:var(--text-3)}
+.disc .t{font-size:28px;font-weight:600;color:#EEC77A;font-variant-numeric:tabular-nums;line-height:1.1}
+.disc .s{font-size:9px;color:var(--text-2)}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1}
+.tile2{background:var(--surface-2);border-radius:var(--r-sm);padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+.tile2 span:first-child{font-size:11px;color:var(--text-3)}
+.tile2 span:last-child{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums}
+.digits{font-size:13px;color:var(--text-2);font-variant-numeric:tabular-nums}
+.note{font-size:12px;color:var(--text-3);line-height:1.45;margin:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Шрифти: порівняння</h1>
+  <p class="lead">Кожна картка — та сама інформація, що й на дашборді. «Текст» — назви й підписи, «Цифри» — значення. Усі шрифти безкоштовні (Google Fonts) і мають кирилицю.</p>
+  <div class="grid" id="grid"></div>
+</div>
+<template id="card">
+  <div class="card">
+    <div class="tag"></div>
+    <div><p class="ttl T">Клімат кімнати</p><p class="sub T">4 датчики · останні 24 години · дані від 23:25</p></div>
+    <div class="row"><span class="dot"></span><span class="nm T">Пацючки</span><span class="val"><span class="big N">24,9°</span><span class="hum N">Н: 40%</span></span></div>
+    <div class="ring">
+      <div class="disc"><span class="c T">ПАЦЮЧКИ · <b>Т</b></span><span class="t N">24,9°</span><span class="s N">22:00–23:00</span><span class="s T">середня</span></div>
+      <div class="tiles">
+        <div class="tile2"><span class="T">Мінімум · 02:00</span><span class="N" style="color:var(--cold)">23,2°</span></div>
+        <div class="tile2"><span class="T">Максимум · 10:00</span><span class="N" style="color:var(--warm)">25,6°</span></div>
+        <div class="tile2"><span class="T">Розкид</span><span class="N">32,5°</span></div>
+        <div class="tile2"><span class="T">Вологість</span><span class="N">40,0%</span></div>
+      </div>
+    </div>
+    <div class="digits N">0123456789 · 16,4° – 51,8° · 00 06 12 18</div>
+    <p class="note"></p>
+  </div>
+</template>
+<script>
+var FONTS = [
+  { tag: '0 · ЗАРАЗ', head: 'Manrope', text: 'Inter', num: "'JetBrains Mono'", note: 'Поточний варіант: м’який сучасний текст, моноширинні цифри.' },
+  { tag: '1 · IBM PLEX', head: "'IBM Plex Sans'", text: "'IBM Plex Sans'", num: "'IBM Plex Mono'", note: 'Шрифт IBM, створений для техніки та документації. Строгий, з характерними «інженерними» засічками в цифрах.' },
+  { tag: '2 · FIRA', head: "'Fira Sans'", text: "'Fira Sans'", num: "'Fira Code'", note: 'Mozilla. Дуже читабельний на дрібних розмірах і на телефоні, цифри чіткі. Нейтрально-технічний.' },
+  { tag: '3 · ROBOTO CONDENSED', head: "'Roboto Condensed'", text: "'Roboto Condensed'", num: "'Roboto Mono'", note: 'Стиснутий, як шкали приладів. Економить місце — більше влазить у рядок, особливо на телефоні.' },
+  { tag: '4 · EXO 2', head: "'Exo 2'", text: "'Exo 2'", num: "'JetBrains Mono'", note: 'Футуристичний, «HUD / авіоніка». Найбільше характеру, але менш стриманий.' },
+  { tag: '5 · OSWALD + PT', head: 'Oswald', text: "'PT Sans'", num: 'Oswald', note: 'Високі стиснуті цифри, як на табло і кресленнях; текст — PT Sans. Цифри дуже помітні здалеку.' }
+];
+var tpl = document.getElementById('card').content, grid = document.getElementById('grid');
+FONTS.forEach(function (f) {
+  var n = tpl.cloneNode(true);
+  n.querySelector('.tag').textContent = f.tag;
+  n.querySelector('.note').textContent = f.note;
+  n.querySelector('.ttl').style.fontFamily = f.head;
+  n.querySelectorAll('.T').forEach(function (e) { if (!e.classList.contains('ttl')) e.style.fontFamily = f.text; });
+  n.querySelectorAll('.N').forEach(function (e) { e.style.fontFamily = f.num; });
+  grid.appendChild(n);
+});
+</script>
+</body>
+</html>
