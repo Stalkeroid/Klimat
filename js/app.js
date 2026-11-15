@@ -38,6 +38,12 @@ var WEEKDAYS = ['НД', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
 function dayLabel(ms) { var d = new Date(ms); return d.getDate() + ' ' + MONTHS[d.getMonth()]; }
 function weekday(ms) { return WEEKDAYS[new Date(ms).getDay()]; }
 
+function emptyDetail() {
+  return { name: '', period: '', color: '#fff', nowLabel: 'Зараз', now: '', avg: '', min: '', max: '', minAt: '', maxAt: '', gridY: [], xTicks: [], line: '', area: '',
+    dot: { x: 0, y: 0, op: 0 }, nowX: -1000, deltaLabel: '', delta: '', chartAria: '', showDrop: true, showTherm: false, showChart: true, showClock: false,
+    metricLabel: '', hourLabel: '', pressedH: 'false', pressedHour: 'false', toggleMetric: function () {}, toggleHour: function () {} };
+}
+
 class Component extends DCLogic {
   constructor(props) {
     super(props);
@@ -110,6 +116,83 @@ class Component extends DCLogic {
     this.innerClick = true;
     if (this.moved) { this.moved = false; return; }
     this.setState({ sel: this.state.sel === i ? null : i, dYaw: 0, dPitch: 0, hover: null, pinned: null, hourView: null });
+  }
+
+  // Панель датчика: та сама величина (Т/Н) і той самий режим (доба/година), що й у кільці — стан спільний.
+  // Доба = поточна календарна доба (00:00…зараз) або вибраний архівний день; година — 5-хвилинна історія.
+  detailVals(sel, isH, archive, rdat, vals) {
+    var self = this, st = this.state, s = SENSORS[sel];
+    var arr = isH ? this.rawH[sel] : this.raw[sel];
+    var vf = isH ? fmtH : fmt, vc = isH ? humColor : tempColor, unit = isH ? '%' : '°';
+    var hourMode = st.hourView != null && rdat[st.hourView];
+    var dayStart = archive ? st.day : dayStartOf(Date.now());
+    var r0, r1, ticks = [];
+    if (hourMode) {
+      r0 = rdat[st.hourView].start; r1 = r0 + 3600000;
+      [0, 15, 30, 45, 60].forEach(function (mm) { ticks.push({ t: r0 + mm * 60000, label: hm(r0 + mm * 60000) }); });
+    } else {
+      r0 = dayStart; r1 = dayStart + 86400000;
+      [0, 6, 12, 18, 24].forEach(function (h) { ticks.push({ t: r0 + h * 3600000, label: (h < 10 ? '0' : '') + h + ':00' }); });
+    }
+    var pts = arr.filter(function (p) { return p.ts >= r0 && p.ts < r1; });
+    var vals2 = pts.map(function (p) { return p.t; });
+    var last = pts.length ? pts[pts.length - 1] : null, first = pts.length ? pts[0] : null;
+    var mnP = null, mxP = null, sum = 0;
+    pts.forEach(function (p) { sum += p.t; if (!mnP || p.t < mnP.t) mnP = p; if (!mxP || p.t > mxP.t) mxP = p; });
+    var avg = pts.length ? sum / pts.length : NaN;
+    var live = !archive && (!hourMode || r1 > Date.now());
+
+    // вісь Y: «круглі» поділки, 3–5 штук
+    var lo, hi, step;
+    if (pts.length) {
+      var span = Math.max(mxP.t - mnP.t, isH ? 2 : 0.6);
+      step = [0.2, 0.5, 1, 2, 5, 10, 20].find(function (st0) { return span / st0 <= 4; }) || 20;
+      lo = Math.floor((mnP.t - span * 0.1) / step) * step; hi = Math.ceil((mxP.t + span * 0.1) / step) * step;
+      if (hi - lo < step * 2) hi = lo + step * 2;
+    } else { lo = 0; hi = 1; step = 1; }
+    var PX0 = 34, PX1 = 314, PY0 = 8, PY1 = 104;
+    function X(t) { return PX0 + (t - r0) / (r1 - r0) * (PX1 - PX0); }
+    function Y(v) { return PY0 + (hi - v) / (hi - lo) * (PY1 - PY0); }
+    var yTicks = [];
+    for (var g = lo; g <= hi + 1e-9; g += step) {
+      var gl = Math.round(g * 10) / 10;
+      yTicks.push({ y: Y(g).toFixed(1), ty: (Y(g) + 3).toFixed(1), label: String(gl).replace('.', ',') + unit });
+    }
+    // лінія з розривами там, де даних не було понад 20 хв
+    var line = '', area = '', seg = [];
+    function flush() {
+      if (!seg.length) return;
+      var d0 = seg.map(function (p, k) { return (k ? 'L' : 'M') + X(p.ts).toFixed(1) + ',' + Y(p.t).toFixed(1); }).join(' ');
+      line += d0 + ' ';
+      area += d0 + ' L' + X(seg[seg.length - 1].ts).toFixed(1) + ',' + PY1 + ' L' + X(seg[0].ts).toFixed(1) + ',' + PY1 + ' Z ';
+      seg = [];
+    }
+    pts.forEach(function (p, k) { if (k && p.ts - pts[k - 1].ts > 20 * 60000) flush(); seg.push(p); });
+    flush();
+    var color = vc(last ? last.t : NaN);
+    var delta = last && first ? last.t - first.t : NaN;
+    var name = sensorName(sel);
+    var period = hourMode ? (archive ? dayLabel(st.day) + ' · ' : '') + hm(r0) + '–' + hm(r1)
+                          : (archive ? dayLabel(st.day) + ' · ' + weekday(st.day) : 'Сьогодні · 00:00–' + hm(Date.now()));
+    return {
+      name: name, period: period, color: color,
+      nowLabel: live ? 'Зараз' : 'Остання', now: vf(last ? last.t : NaN),
+      avg: vf(avg), min: vf(mnP ? mnP.t : NaN), max: vf(mxP ? mxP.t : NaN),
+      minAt: mnP ? hm(mnP.ts) : '—', maxAt: mxP ? hm(mxP.ts) : '—',
+      gridY: yTicks, xTicks: ticks.map(function (tk, k) { return { x: X(tk.t).toFixed(1), label: tk.label, anchor: k === 0 ? 'start' : (k === ticks.length - 1 ? 'end' : 'middle') }; }),
+      line: line.trim(), area: area.trim(),
+      dot: last ? { x: X(last.ts).toFixed(1), y: Y(last.t).toFixed(1), op: 1 } : { x: 0, y: 0, op: 0 },
+      nowX: live && !hourMode ? X(Date.now()).toFixed(1) : -1000,   // пунктир «зараз» лише для живої доби
+      deltaLabel: hourMode ? 'Зміна за годину' : 'Зміна за добу',
+      delta: isFinite(delta) ? (delta >= 0 ? '+' : '−') + Math.abs(delta).toFixed(1).replace('.', ',') + unit : '—',
+      chartAria: (isH ? 'Вологість ' : 'Температура ') + name + ', ' + period + ', від ' + vf(mnP ? mnP.t : NaN) + ' до ' + vf(mxP ? mxP.t : NaN),
+      // ті самі перемикачі, що й у кільці (спільний стан)
+      isH: isH, isHour: !!hourMode, showDrop: !isH, showTherm: isH, showChart: !hourMode, showClock: !!hourMode,
+      metricLabel: isH ? 'Показати температуру' : 'Показати вологість', hourLabel: hourMode ? 'Назад до доби' : 'Детально за годину',
+      pressedH: isH ? 'true' : 'false', pressedHour: hourMode ? 'true' : 'false',
+      toggleMetric: function () { vals.toggleMetric(); self.innerClick = false; },
+      toggleHour: function () { (hourMode ? vals.closeHour : vals.openHour)(); self.innerClick = false; }
+    };
   }
 
   renderVals() {
@@ -266,7 +349,7 @@ class Component extends DCLogic {
         self.drag = null; if (self.state.dragging) self.setState({ dragging: false });
       },
       ringScale: 1, btn: { size: 56, inset: 4, bottom: 4, radius: 12, icon: 26 }, metricBtn: { label: '', pressed: 'false', showDrop: true, showTherm: false }, toggleMetric: function () {}, ringMove: function () {}, ringAria: '', bars: [], grid: [], nowDot: { x: 0, y: 0, op: 0 }, center: { code: '', mk: '', sub2: '', temp: '', sub: '', color: '#fff' },
-      det: { nowLabel: 'Зараз', humLabel: 'Вологість зараз', period: '24 год', xEnd: 'зараз', code: '', name: '', now: '', avg: '', min: '', max: '', minAt: '', maxAt: '', hum: '', color: '#fff', line: '', area: '', dot: { x: 0, y: 0 }, gridY: [], xStart: '', xMid: '', delta: '', chartAria: '' }
+      det: emptyDetail()
     };
 
     if (sel != null) {
@@ -376,28 +459,7 @@ class Component extends DCLogic {
       vals.metricBtn = { label: isH ? 'Показати температуру' : 'Показати вологість', pressed: isH ? 'true' : 'false', showDrop: !isH, showTherm: isH };
       vals.toggleMetric = function () { self.innerClick = true; self.setState({ metric: isH ? 't' : 'h', hover: null, pinned: null }); };
       vals.hourMode = hourMode; vals.dayMode = !hourMode;
-      var lo = isFinite(mn) ? Math.floor(mn - 0.3) : 0, hi = isFinite(mx) ? Math.ceil(mx + 0.3) : 1;
-      function X(k) { return 6 + k * (308 / 23); }
-      function Y(t) { return 8 + (hi - t) / (hi - lo) * 96; }
-      var line = tf.length ? d.map(function (p, k) { return X(k).toFixed(1) + ',' + Y(p.t).toFixed(1); }).join(' ') : '';
-      var minK = Math.max(0, ts.indexOf(mn)), maxK = Math.max(0, ts.indexOf(mx));
-      var gy = [];
-      var step = hi - lo > 3 ? 2 : 1;
-      for (var g = lo; g <= hi; g += step) gy.push({ y: Y(g).toFixed(1), t: g + '°' });
-      var delta = d[23].t - d[0].t;
-      vals.det = {
-        code: s.code, name: sensorName(SENSORS.indexOf(s)), now: fmt(archive ? latestOf(self.raw[sel]) : cur[sel]),
-        nowLabel: archive ? 'Остання за добу' : 'Зараз', humLabel: archive ? 'Вологість, середня' : 'Вологість зараз',
-        period: archive ? dayLabel(st.day) : '24 год', xEnd: archive ? '23:00' : 'зараз', avg: fmt(mean), min: fmt(mn), max: fmt(mx),
-        minAt: hh(d[minK].hd), maxAt: hh(d[maxK].hd), color: tempColor(archive ? latestOf(self.raw[sel]) : cur[sel]),
-        hum: isFinite(self.hum[sel]) ? self.hum[sel].toFixed(1).replace('.', ',') + '%' : '—',
-        line: line, area: line ? 'M' + X(0).toFixed(1) + ',' + Y(lo).toFixed(1) + ' L' + line.split(' ').join(' L') + ' L' + X(23).toFixed(1) + ',' + Y(lo).toFixed(1) + ' Z' : '',
-        dot: { x: X(23).toFixed(1), y: isFinite(d[23].t) ? Y(d[23].t).toFixed(1) : -100 }, gridY: gy,
-        xStart: hh(d[0].hd), xMid: hh(d[12].hd),
-        yRange: lo + '…' + hi + '°',
-        delta: isFinite(delta) ? (delta >= 0 ? '+' : '−') + Math.abs(delta).toFixed(1).replace('.', ',') + '°' : '—',
-        chartAria: 'Лінійний графік ' + sensorName(SENSORS.indexOf(s)) + ' за 24 години, від ' + fmt(mn) + ' до ' + fmt(mx)
-      };
+      vals.det = self.detailVals(sel, isH, archive, rdat, vals);
     }
     return vals;
   }

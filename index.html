@@ -6,8 +6,8 @@
 <title>Клімат кімнати</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/theme.css?v=34">
-<link rel="stylesheet" href="css/style.css?v=34">
+<link rel="stylesheet" href="css/theme.css?v=36">
+<link rel="stylesheet" href="css/style.css?v=36">
 </head>
 <body>
 <div id="app"></div>
@@ -153,33 +153,45 @@
       </div>
 
       <sc-if value="{{hasSel}}">
-        <section class="glass" style="display: flex; flex-direction: column; gap: 14px; border-radius: var(--r-lg); padding: 18px">
-          <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px">
-            <h2 style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text)">{{det.name}}</h2>
-            <span style="font-size: 12px; color: var(--text-3)">{{det.period}}</span>
-          </div>
-          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
-            <div class="tile" style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px"><span style="font-size: 12px; color: var(--text-3)">{{det.nowLabel}}</span><span style="font-family: var(--font-num); font-size: 25px; font-weight: 600; color: {{det.color}}">{{det.now}}</span></div>
-            <div class="tile" style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px"><span style="font-size: 12px; color: var(--text-3)">Середня</span><span style="font-family: var(--font-num); font-size: 25px; font-weight: 600">{{det.avg}}</span></div>
-            <div class="tile" style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px"><span style="font-size: 12px; color: var(--text-3)">Мінімум · {{det.minAt}}</span><span style="font-family: var(--font-num); font-size: 20px; font-weight: 600; color: var(--cold)">{{det.min}}</span></div>
-            <div class="tile" style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px"><span style="font-size: 12px; color: var(--text-3)">Максимум · {{det.maxAt}}</span><span style="font-family: var(--font-num); font-size: 20px; font-weight: 600; color: var(--warm)">{{det.max}}</span></div>
-            <div class="tile" style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; grid-column: 1 / -1"><span style="font-size: 12px; color: var(--text-3)">{{det.humLabel}}</span><span style="font-family: var(--font-num); font-size: 20px; font-weight: 600; color: var(--cold)">{{det.hum}}</span></div>
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 4px">
-            <svg viewBox="0 0 320 112" width="100%" role="img" aria-label="{{det.chartAria}}" style="display: block">
-              <sc-for list="{{det.gridY}}" as="gy">
-                <line x1="0" x2="320" y1="{{gy.y}}" y2="{{gy.y}}" style="stroke: var(--stroke)"></line>
-              </sc-for>
-              <path d="{{det.area}}" fill="{{det.color}}" opacity="0.14"></path>
-              <polyline points="{{det.line}}" fill="none" stroke="{{det.color}}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></polyline>
-              <circle cx="{{det.dot.x}}" cy="{{det.dot.y}}" r="4" fill="{{det.color}}" stroke-width="2" style="stroke: var(--bg)"></circle>
-            </svg>
-            <div style="display: flex; justify-content: space-between; font-family: var(--font-data); font-size: 10px; color: var(--text-4)">
-              <span>{{det.xStart}}</span><span>{{det.xMid}}</span><span>{{det.xEnd}}</span>
+        <!-- панель датчика: величина й режим спільні з кільцем (кнопки праворуч у заголовку) -->
+        <section class="glass det" style="border-radius: var(--r-lg)">
+          <div class="det-head">
+            <div class="det-title">
+              <h2>{{det.name}}</h2>
+              <span class="det-period">{{det.period}}</span>
             </div>
-            <div style="font-family: var(--font-data); font-size: 10px; color: var(--text-4)">шкала: {{det.yRange}}</div>
+            <div class="seg" role="group" aria-label="Режим показу">
+              <button class="seg-btn" type="button" onClick="{{det.toggleMetric}}" aria-pressed="{{det.pressedH}}" aria-label="{{det.metricLabel}}" title="{{det.metricLabel}}">
+                <sc-if value="{{det.showDrop}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c3.5 4.4 6 7.7 6 11a6 6 0 0 1-12 0c0-3.3 2.5-6.6 6-11z"></path></svg></sc-if>
+                <sc-if value="{{det.showTherm}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z"></path></svg></sc-if>
+              </button>
+              <button class="seg-btn" type="button" onClick="{{det.toggleHour}}" aria-pressed="{{det.pressedHour}}" aria-label="{{det.hourLabel}}" title="{{det.hourLabel}}">
+                <sc-if value="{{det.showChart}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"></path><path d="M7 15l4-5 3 3 5-6"></path></svg></sc-if>
+                <sc-if value="{{det.showClock}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></sc-if>
+              </button>
+            </div>
           </div>
-          <p style="margin: 0; font-size: 13px; color: var(--text-2)">Зміна за добу: <span style="font-family: var(--font-num); font-weight: 600">{{det.delta}}</span></p>
+          <div class="det-grid">
+            <div class="tile det-tile"><span class="det-lbl">{{det.nowLabel}}</span><span class="det-val" style="color: {{det.color}}">{{det.now}}</span></div>
+            <div class="tile det-tile"><span class="det-lbl">Середня</span><span class="det-val" style="">{{det.avg}}</span></div>
+            <div class="tile det-tile"><span class="det-lbl">Мінімум · {{det.minAt}}</span><span class="det-val" style="color: var(--cold)">{{det.min}}</span></div>
+            <div class="tile det-tile"><span class="det-lbl">Максимум · {{det.maxAt}}</span><span class="det-val" style="color: var(--warm)">{{det.max}}</span></div>
+          </div>
+          <svg class="det-chart" viewBox="0 0 320 124" width="100%" role="img" aria-label="{{det.chartAria}}">
+            <sc-for list="{{det.gridY}}" as="gy">
+              <line x1="34" x2="314" y1="{{gy.y}}" y2="{{gy.y}}" style="stroke: var(--stroke)"></line>
+              <text x="28" y="{{gy.ty}}" text-anchor="end" class="det-axis">{{gy.label}}</text>
+            </sc-for>
+            <line x1="{{det.nowX}}" x2="{{det.nowX}}" y1="8" y2="104" stroke-dasharray="2 3" style="stroke: var(--stroke-strong)"></line>
+            <path d="{{det.area}}" fill="{{det.color}}" opacity="0.12"></path>
+            <path d="{{det.line}}" fill="none" stroke="{{det.color}}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"></path>
+            <circle cx="{{det.dot.x}}" cy="{{det.dot.y}}" r="3.5" fill="{{det.color}}" opacity="{{det.dot.op}}" stroke-width="2" style="stroke: var(--surface)"></circle>
+            <sc-for list="{{det.xTicks}}" as="tk">
+              <line x1="{{tk.x}}" x2="{{tk.x}}" y1="104" y2="108" style="stroke: var(--stroke-strong)"></line>
+              <text x="{{tk.x}}" y="120" text-anchor="{{tk.anchor}}" class="det-axis">{{tk.label}}</text>
+            </sc-for>
+          </svg>
+          <p class="det-delta">{{det.deltaLabel}}: <b>{{det.delta}}</b></p>
         </section>
       </sc-if>
       <sc-if value="{{noSel}}">
@@ -200,13 +212,13 @@
 </div>
 </template>
 
-<script src="js/config.js?v=34"></script>
-<script src="js/engine.js?v=34"></script>
-<script src="js/room.js?v=34"></script>
-<script src="js/utils.js?v=34"></script>
-<script src="js/data.js?v=34"></script>
-<script src="js/calendar.js?v=34"></script>
-<script src="js/markers.js?v=34"></script>
-<script src="js/app.js?v=34"></script>
+<script src="js/config.js?v=36"></script>
+<script src="js/engine.js?v=36"></script>
+<script src="js/room.js?v=36"></script>
+<script src="js/utils.js?v=36"></script>
+<script src="js/data.js?v=36"></script>
+<script src="js/calendar.js?v=36"></script>
+<script src="js/markers.js?v=36"></script>
+<script src="js/app.js?v=36"></script>
 </body>
 </html>
