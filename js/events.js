@@ -3,6 +3,9 @@
 // Правило (лінійна регресія — нахил прямої методом найменших квадратів, °C/год):
 //  • вікно — останні 30 хв (зазвичай 6 замірів, потрібно щонайменше 4);
 //  • нахил ≥ +HEAT_SLOPE — опалення увімкнули, ≤ −HEAT_SLOPE — вимкнули; між ними стан не змінюється (гістерезис);
+//  • запобіжник за рівнем (лише коли температура стабільна, |нахил| < половини порогу): якщо всі заміри вікна ≥ HEAT_ON_LEVEL, а стан «вимк» (хибна подія раніше) — виправляємо
+//    на «увімк»; якщо всі ≤ HEAT_OFF_LEVEL, а стан «увімк» — на «вимк». Такі події позначені byLevel.
+//    Сподіваємося, що він майже ніколи не спрацьовуватиме — це страховка від помилок тренду;
 //  • додатково той самий знак тренду має бути вже на початку вікна (перша половина, ≥ 3 заміри, нахил ≥ половини порогу).
 //    Тобто подія фіксується, коли зміна тягнеться через усе вікно — тоді її початок лежить у перших 10 хв вікна,
 //    і час події = початок вікна + 5 хв (середина цих перших 10 хв).
@@ -11,7 +14,8 @@
 
 var HEAT_WINDOW = 30 * 60000;   // вікно регресії
 var HEAT_SLOPE = 3;             // поріг нахилу, °C/год
-var HEAT_LEVEL = 35;            // якщо змін не було: вище цієї температури вважаємо, що опалення працює
+var HEAT_ON_LEVEL = 35;         // запобіжник: усі заміри вікна ≥ цього — опалення точно працює
+var HEAT_OFF_LEVEL = 28;        // запобіжник: усі заміри вікна ≤ цього — опалення точно вимкнене
 
 // нахил прямої за точками { ts, t }, °C/год; null, якщо точок замало
 function slopePerHour(pts) {
@@ -36,12 +40,20 @@ function heatingState(arr) {
     var head = slopePerHour(win.filter(function (p) { return p.ts < start + HEAT_WINDOW / 2; }));
     if (k == null || head == null) continue;
     var t0 = start + 5 * 60000;                                          // середина перших 10 хв вікна
-    if (k >= HEAT_SLOPE && head >= HEAT_SLOPE / 2 && state !== true) { state = true; changes.push({ ts: t0, on: true }); }
-    else if (k <= -HEAT_SLOPE && head <= -HEAT_SLOPE / 2 && state !== false) { state = false; changes.push({ ts: t0, on: false }); }
+    var allHot = win.every(function (p) { return p.t >= HEAT_ON_LEVEL; });
+    var allCold = win.every(function (p) { return p.t <= HEAT_OFF_LEVEL; });
+    if (k >= HEAT_SLOPE && head >= HEAT_SLOPE / 2 && state !== true) { changes.push({ ts: t0, on: true, initial: state === null }); state = true; }
+    else if (k <= -HEAT_SLOPE && head <= -HEAT_SLOPE / 2 && state !== false) { changes.push({ ts: t0, on: false, initial: state === null }); state = false; }
+    // запобіжник за рівнем (і початковий стан, якщо трендових подій ще не було) — лише коли температура стабільна,
+    // тобто сама не росте й не падає: остигаюча батарея ще довго гаряча, але це вже «вимк»
+    else if (Math.abs(k) >= HEAT_SLOPE / 2) { /* триває зміна — рівню не віримо */ }
+    else if (allHot && state !== true) { changes.push({ ts: win[0].ts, on: true, byLevel: true, initial: state === null }); state = true; }
+    else if (allCold && state !== false) { changes.push({ ts: win[0].ts, on: false, byLevel: true, initial: state === null }); state = false; }
   }
-  if (changes.length) { var last = changes[changes.length - 1]; return { on: last.on, since: last.ts, changes: changes }; }
-  if (!arr.length) return { on: null, since: null, changes: [] };
-  return { on: arr[arr.length - 1].t >= HEAT_LEVEL, since: null, changes: [] };
+  if (!changes.length) return { on: null, since: null, changes: [] };
+  var last = changes[changes.length - 1];
+  // початковий стан (з самого початку даних) показуємо без часу — коли саме увімкнули, невідомо
+  return { on: last.on, since: last.initial ? null : last.ts, byLevel: !!last.byLevel, changes: changes };
 }
 
 // «як давно»: щойно / 5 хв / 3 год / 14 ЛИС

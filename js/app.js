@@ -279,7 +279,7 @@ class Component extends DCLogic {
       heatState: heat.on == null ? 'НЕВІДОМО' : (heat.on ? 'УВІМК' : 'ВИМК') + (sinceTxt ? ' · ' + sinceTxt : ''),
       heatColor: heat.on ? 'var(--warm)' : 'var(--text-3)',
       heatIcon: heat.on ? 'var(--warm)' : 'var(--text-4)',
-      heatTitle: 'Визначається за датчиком «' + (heatIdx >= 0 ? sensorName(heatIdx) : '') + '»: нахил тренду за ' + (HEAT_WINDOW / 60000) + ' хв ≥ ±' + HEAT_SLOPE + ' °C/год',
+      heatTitle: 'Визначається за датчиком «' + (heatIdx >= 0 ? sensorName(heatIdx) : '') + '»: нахил тренду за ' + (HEAT_WINDOW / 60000) + ' хв ≥ ±' + HEAT_SLOPE + ' °C/год' + (heat.byLevel ? '. Останній стан виправлено за рівнем температури (запобіжник)' : ''),
       linkTitle: archive ? 'ОСТАННІ ЗАПИСИ ДОБИ' : 'ЗВ’ЯЗОК ДАТЧИКІВ',
       linkMeta: archive ? '' : online + '/' + SENSORS.length + ' НА ЗВ’ЯЗКУ',
       links: links
