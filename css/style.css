@@ -38,7 +38,11 @@ a{color:var(--accent)}
 .keyBtn{font:inherit;font-size:12px;background:none;border:0;color:var(--accent);cursor:pointer;padding:4px 0;min-height:24px}
 
 /* стан поруч із назвою: легка «пігулка», не конкурує із заголовком */
-.status-chip{display:flex;align-items:center;gap:8px;height:30px;box-sizing:border-box;padding:0 12px;font-family:var(--font-data);font-size:11px;font-weight:500;letter-spacing:.08em;color:var(--text-2);background:var(--surface);border:1px solid var(--stroke);border-radius:var(--r-sm);box-shadow:inset 0 1px 0 var(--highlight);white-space:nowrap}
+.status-chip{display:flex;align-items:center;gap:8px;min-width:0;flex:0 1 auto;height:30px;box-sizing:border-box;padding:0 12px;font-family:var(--font-data);font-size:11px;font-weight:500;letter-spacing:.08em;color:var(--text-2);background:var(--surface);border:1px solid var(--stroke);border-radius:var(--r-sm);box-shadow:inset 0 1px 0 var(--highlight);white-space:nowrap}
+
+.chip-txt{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.status-chip > span:first-child{flex:none}
+.title{flex:none}
 
 /* «машина часу»: один сегментований блок у стилі плашок (поверхня + тонка обводка), а не три окремі кнопки.
    Ширина сегмента дати стала — нічого не їздить */
@@ -82,7 +86,7 @@ a{color:var(--accent)}
 .pin-btn:active{background:var(--button-active) !important;transform:scale(.94)}
 
 /* телефон */
-@media (max-width:700px){.stage{height:464px !important}.legend{left:14px;right:14px !important;bottom:12px !important;gap:14px !important}.legend-item{flex:1 1 0;min-width:0}.legend-bar{flex:1 1 auto;width:auto !important}.hint{display:none !important}}
+@media (max-width:700px){.page{padding:22px 16px 28px !important}.title{font-size:23px !important}.top-left{gap:10px !important}.status-chip{height:28px;padding:0 9px;font-size:10px;letter-spacing:.06em;gap:6px}.stage{height:464px !important}.legend{left:14px;right:14px !important;bottom:12px !important;gap:14px !important}.legend-item{flex:1 1 0;min-width:0}.legend-bar{flex:1 1 auto;width:auto !important}.hint{display:none !important}}
 
 /* ---------- мітки датчиків (виносна табличка + рамка-приціл) ---------- */
 .mk-layer{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden}

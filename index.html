@@ -6,8 +6,8 @@
 <title>Клімат кімнати</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/theme.css?v=33">
-<link rel="stylesheet" href="css/style.css?v=33">
+<link rel="stylesheet" href="css/theme.css?v=34">
+<link rel="stylesheet" href="css/style.css?v=34">
 </head>
 <body>
 <div id="app"></div>
@@ -29,12 +29,12 @@
 </div>
 
 <template id="tpl">
-<div style="min-height: 900px; box-sizing: border-box; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 20px; background: transparent; color: var(--text); font-family: var(--font-text)">
+<div class="page" style="min-height: 900px; box-sizing: border-box; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 20px; background: transparent; color: var(--text); font-family: var(--font-text)">
   <!-- шапка повторює сітку main: ліва частина — над кімнатою (назва + стан), права — над колонкою справа (перемикач дня по центру) -->
   <header class="top" style="display: flex; flex-wrap: wrap; align-items: center; gap: 20px">
-    <div class="top-left" style="flex: 999 1 640px; min-width: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 14px">
-      <h1 style="margin: 0; font-family: var(--font-display); font-size: 30px; font-weight: 700; letter-spacing: -0.01em; color: var(--text)">Клімат кімнати</h1>
-      <span class="status-chip" role="status" title="{{badgeTitle}}"><span style="width: 8px; height: 8px; border-radius: 50%; background: {{badgeColor}}; box-shadow: 0 0 8px {{badgeColor}}"></span>{{badge}}</span>
+    <div class="top-left" style="flex: 999 1 640px; min-width: 0; display: flex; align-items: center; flex-wrap: nowrap; gap: 14px">
+      <h1 class="title" style="margin: 0; font-family: var(--font-display); font-size: 30px; font-weight: 700; letter-spacing: -0.01em; color: var(--text)">Клімат кімнати</h1>
+      <span class="status-chip" role="status" title="{{badgeTitle}}"><span style="width: 8px; height: 8px; border-radius: 50%; background: {{badgeColor}}; box-shadow: 0 0 8px {{badgeColor}}"></span><span class="chip-txt">{{badge}}</span></span>
     </div>
     <div class="top-right" style="flex: 1 1 340px; min-width: 0; display: flex; justify-content: center">
       <div class="daynav" role="group" aria-label="Вибір дня">
@@ -200,13 +200,13 @@
 </div>
 </template>
 
-<script src="js/config.js?v=33"></script>
-<script src="js/engine.js?v=33"></script>
-<script src="js/room.js?v=33"></script>
-<script src="js/utils.js?v=33"></script>
-<script src="js/data.js?v=33"></script>
-<script src="js/calendar.js?v=33"></script>
-<script src="js/markers.js?v=33"></script>
-<script src="js/app.js?v=33"></script>
+<script src="js/config.js?v=34"></script>
+<script src="js/engine.js?v=34"></script>
+<script src="js/room.js?v=34"></script>
+<script src="js/utils.js?v=34"></script>
+<script src="js/data.js?v=34"></script>
+<script src="js/calendar.js?v=34"></script>
+<script src="js/markers.js?v=34"></script>
+<script src="js/app.js?v=34"></script>
 </body>
 </html>
