@@ -32,10 +32,18 @@ function cssPx(name, fallback) {
   return isFinite(v) ? v : fallback;
 }
 
+// підписи дат для «машини часу»
+var MONTHS = ['СІЧ', 'ЛЮТ', 'БЕР', 'КВІ', 'ТРА', 'ЧЕР', 'ЛИП', 'СЕР', 'ВЕР', 'ЖОВ', 'ЛИС', 'ГРУ'];
+var WEEKDAYS = ['НД', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
+function dayLabel(ms) { var d = new Date(ms); return d.getDate() + ' ' + MONTHS[d.getMonth()]; }
+function weekday(ms) { return WEEKDAYS[new Date(ms).getDay()]; }
+function isoDate(ms) { var d = new Date(ms); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { sel: null, dYaw: 0, dPitch: 0, dragging: false, hover: null, pinned: null, hourView: null, status: 'loading', zoom: 1, metric: 't' };
+    this.state = { sel: null, dYaw: 0, dPitch: 0, dragging: false, hover: null, pinned: null, hourView: null, status: 'loading', zoom: 1, metric: 't', day: null };
+    this.loadToken = 0;
     this.ptrs = {};
     this.pinch = null;
     this.innerClick = false;
@@ -54,23 +62,47 @@ class Component extends DCLogic {
   async load() {
     var key = getKey();
     if (!key) { this.setState({ status: 'nokey' }); showSetup(); return; }
+    var day = this.state.day, token = ++this.loadToken;
     try {
-      var res = await fetchFeeds(key);
+      var res = day == null ? await fetchFeeds(key) : await fetchDay(key, day);
+      if (token !== this.loadToken) return;            // поки вантажилось, вибрали інший день
       if (!res) {
         this.setState({ status: 'badkey' });
         showSetup('Не вдалося прочитати канал — перевірте ключ.');
         return;
       }
-      this.raw = res.raw; this.hum = res.hum; this.lastTs = res.lastTs;
+      this.raw = res.raw; this.rawH = res.rawH; this.lastTs = res.lastTs;
       this.now = Date.now();
-      this.rawH = res.rawH;
-      this.data = buildReal(res.raw, this.now);
-      this.dataH = buildReal(res.rawH, this.now);
+      if (day == null) {                                // наживо: ковзні 24 год, «зараз» — останній запис
+        this.hum = res.hum;
+        this.data = buildReal(res.raw, this.now);
+        this.dataH = buildReal(res.rawH, this.now);
+      } else {                                          // архів: доба 00…23, значення — середні за добу
+        this.hum = res.rawH.map(meanOf);
+        this.data = buildDay(res.raw, day);
+        this.dataH = buildDay(res.rawH, day);
+      }
       this.setState({ status: 'ok' });
     } catch (e) {
+      if (token !== this.loadToken) return;
       this.now = Date.now();
       this.setState({ status: 'error' });
     }
+  }
+
+  // «Машина часу»: null — сьогодні наживо, інакше локальна північ вибраного дня
+  setDay(d) {
+    var today = dayStartOf(Date.now());
+    if (d != null && d >= today) d = null;
+    if (d != null && d < this.minDay()) d = this.minDay();
+    if (d === this.state.day) return;
+    this.setState({ day: d, hourView: null, pinned: null, hover: null, status: 'loading' });
+    this.load();
+  }
+  minDay() {
+    var floor = dayStartOf(Date.now() - 365 * 86400000);
+    if (isDemo()) return dayStartOf(Date.now() - 60 * 86400000);
+    return channelStart ? Math.max(floor, dayStartOf(channelStart)) : floor;
   }
 
   afterRender() { trackMarkers(this.state.dragging ? 200 : 1400); }
@@ -103,13 +135,14 @@ class Component extends DCLogic {
       return 'translate3d(' + c[0] + 'px,' + c[1] + 'px,' + c[2] + 'px) rotateY(' + (-ry) + 'deg) rotateX(' + (-rx) + 'deg) translateZ(' + push + 'px)';
     }
     // «зараз» — останній запис (реальний час); кільце за добу — погодинні середні
-    var cur = self.raw.map(latestOf);
+    var archive = st.day != null;
+    var cur = self.raw.map(archive ? meanOf : latestOf);   // в архіві — середні за добу
 
     // мітки: 3D-якір (лише позиція) + плаский шар з табличкою; див. js/markers.js
     var STALE_MS = 15 * 60000;
     var markers = SENSORS.map(function (s, i) {
       var isSel = sel === i, c = toCss(s.pos), arr = self.raw[i];
-      var stale = !arr.length || Date.now() - arr[arr.length - 1].ts > STALE_MS;
+      var stale = !archive && (!arr.length || Date.now() - arr[arr.length - 1].ts > STALE_MS);
       return {
         name: sensorName(SENSORS.indexOf(s)), temp: fmt(cur[i]), color: tempColor(cur[i]),
         t: 'translate3d(' + c[0] + 'px,' + c[1] + 'px,' + c[2] + 'px)',
@@ -138,7 +171,7 @@ class Component extends DCLogic {
     var curF = cur.map(function (t, i) { return { t: t, i: i }; }).filter(function (x) { return isFinite(x.t); });
     var avg = curF.length ? curF.reduce(function (a, b) { return a + b.t; }, 0) / curF.length : NaN;
     var all = finite([].concat.apply([], data.map(function (d) { return d.map(function (p) { return p.t; }); })));
-    var room = { warm: '—', cool: '—', spread: '—', range: '—' };
+    var room = { warm: '—', cool: '—', spread: '—', range: '—', spreadLabel: archive ? 'Розкид (середні)' : 'Розкид зараз' };
     if (curF.length) {
       var hi0 = curF.reduce(function (a, b) { return b.t > a.t ? b : a; }), lo0 = curF.reduce(function (a, b) { return b.t < a.t ? b : a; });
       room.warm = sensorName(hi0.i) + ' · ' + fmt(hi0.t);
@@ -150,7 +183,8 @@ class Component extends DCLogic {
     var badge, badgeColor;
     // індикатор статусу: стан + час останніх даних (замість підзаголовка)
     var tLast = self.lastTs ? ' · ' + hm(self.lastTs) : '';
-    if (st.status === 'ok' && isDemo()) { badge = 'ДЕМО · ВИПАДКОВІ ДАНІ'; badgeColor = 'var(--accent)'; }
+    if (st.status === 'ok' && archive) { badge = (isDemo() ? 'ДЕМО · ' : '') + 'АРХІВ'; badgeColor = 'var(--text-3)'; }   // дата — у перемикачі поруч
+    else if (st.status === 'ok' && isDemo()) { badge = 'ДЕМО · ВИПАДКОВІ ДАНІ'; badgeColor = 'var(--accent)'; }
     else if (st.status === 'loading') { badge = 'ЗАВАНТАЖЕННЯ'; badgeColor = 'var(--text-3)'; }
     else if (st.status === 'ok' && self.lastTs && Date.now() - self.lastTs < 15 * 60000) { badge = 'НАЖИВО' + tLast; badgeColor = '#5BC28A'; }
     else if (st.status === 'ok' && self.lastTs) { badge = 'НЕМАЄ ДАНИХ' + tLast; badgeColor = '#E9B44C'; }
@@ -165,6 +199,14 @@ class Component extends DCLogic {
       hasSel: sel != null, noSel: sel == null, ringOn: sel != null,
       updated: self.lastTs ? hm(self.lastTs) : '—',
       badge: badge, badgeColor: badgeColor, badgeTitle: badgeTitle,
+      // перемикач дня
+      dayBtn: archive ? dayLabel(st.day) + ' · ' + weekday(st.day) : 'СЬОГОДНІ',
+      dayPickValue: isoDate(archive ? st.day : Date.now()), dayPickMax: isoDate(Date.now()), dayPickMin: isoDate(self.minDay()),
+      prevOff: (archive ? st.day : dayStartOf(Date.now())) > self.minDay() ? 'false' : 'true', nextOff: archive ? 'false' : 'true',
+      prevDay: function () { var base = self.state.day != null ? self.state.day : dayStartOf(Date.now()); self.setDay(dayStartOf(base - 12 * 3600000)); },
+      nextDay: function () { if (self.state.day != null) self.setDay(dayStartOf(self.state.day + 36 * 3600000)); },
+      openPicker: function () { var inp = document.querySelector('.day-pick'); if (!inp) return; try { inp.showPicker(); } catch (e) { inp.focus(); inp.click(); } },
+      pickDay: function (e) { var v = e.target.value; if (!v) return; var p = v.split('-'); self.setDay(new Date(+p[0], +p[1] - 1, +p[2]).getTime()); },
       // легенда: граничні значення активного режиму — білі; поки датчик не вибрано — обидві сірі
       lg: sel == null ? { t: 'var(--text-3)', h: 'var(--text-3)' } : (st.metric === 'h' ? { t: 'var(--text-3)', h: 'var(--text)' } : { t: 'var(--text)', h: 'var(--text-3)' }),
       changeKey: function () { showSetup(); },
@@ -224,7 +266,7 @@ class Component extends DCLogic {
         self.drag = null; if (self.state.dragging) self.setState({ dragging: false });
       },
       ringScale: 1, btn: { size: 56, inset: 4, bottom: 4, radius: 12, icon: 26 }, metricBtn: { label: '', pressed: 'false', showDrop: true, showTherm: false }, toggleMetric: function () {}, ringMove: function () {}, ringAria: '', bars: [], grid: [], nowDot: { x: 0, y: 0, op: 0 }, center: { code: '', mk: '', sub2: '', temp: '', sub: '', color: '#fff' },
-      det: { code: '', name: '', now: '', avg: '', min: '', max: '', minAt: '', maxAt: '', hum: '', color: '#fff', line: '', area: '', dot: { x: 0, y: 0 }, gridY: [], xStart: '', xMid: '', delta: '', chartAria: '' }
+      det: { nowLabel: 'Зараз', humLabel: 'Вологість зараз', period: '24 год', xEnd: 'зараз', code: '', name: '', now: '', avg: '', min: '', max: '', minAt: '', maxAt: '', hum: '', color: '#fff', line: '', area: '', dot: { x: 0, y: 0 }, gridY: [], xStart: '', xMid: '', delta: '', chartAria: '' }
     };
 
     if (sel != null) {
@@ -242,21 +284,21 @@ class Component extends DCLogic {
       var isH = st.metric === 'h';
       var rdat = isH ? self.dataH[sel] : d, rawR = isH ? self.rawH[sel] : self.raw[sel];
       var vfmt = isH ? fmtH : fmt, vcol = isH ? humColor : tempColor, vrad = isH ? radH : rad;
-      var curR = isH ? latestOf(self.rawH[sel]) : cur[sel];
+      var curR = isH ? (archive ? meanOf : latestOf)(self.rawH[sel]) : cur[sel];
       var hourMode = st.hourView != null, segs, N, now = new Date(self.now), havg = NaN;
       if (!hourMode) {
         N = 24;
         segs = [];
         for (var hs = 0; hs < 24; hs++) segs.push({ future: true, t: null, label: hh(hs) + '–' + hh((hs + 1) % 24) });
         rdat.forEach(function (p, k) {
-          if (p.hd <= rdat[23].hd && !p.filled && isFinite(p.t))
-            segs[p.hd] = { future: false, t: p.t, label: hh(p.hd) + '–' + hh((p.hd + 1) % 24), isNow: k === 23 };
+          if ((archive || p.hd <= rdat[23].hd) && !p.filled && isFinite(p.t))
+            segs[p.hd] = { future: false, t: p.t, label: hh(p.hd) + '–' + hh((p.hd + 1) % 24), isNow: !archive && k === 23 };
         });
       } else {
         // реальні 5-хвилинні показники за обрану годину
         N = 12;
         var hk = st.hourView, hpnt = rdat[hk], hs0 = hpnt.start, rawS = rawR;
-        var avail = hk === 23 ? Math.floor(now.getMinutes() / 5) + 1 : 12;
+        var avail = !archive && hk === 23 ? Math.floor(now.getMinutes() / 5) + 1 : 12;
         var sums = [], cnts = [];
         for (var z = 0; z < 12; z++) { sums.push(0); cnts.push(0); }
         rawS.forEach(function (p) {
@@ -268,7 +310,7 @@ class Component extends DCLogic {
         for (var m = 0; m < 12; m++) {
           var mm0 = m * 5, mm1 = m * 5 + 5;
           var lab = String(hpnt.hd).padStart(2, '0') + ':' + String(mm0).padStart(2, '0') + '–' + (mm1 === 60 ? hh((hpnt.hd + 1) % 24) : String(hpnt.hd).padStart(2, '0') + ':' + String(mm1).padStart(2, '0'));
-          if (m < avail && cnts[m]) segs.push({ future: false, t: Math.round(sums[m] / cnts[m] * 10) / 10, label: lab, isNow: hk === 23 && m === lastReal });
+          if (m < avail && cnts[m]) segs.push({ future: false, t: Math.round(sums[m] / cnts[m] * 10) / 10, label: lab, isNow: !archive && hk === 23 && m === lastReal });
           else segs.push({ future: true, t: null, label: lab });
         }
         var real = segs.filter(function (x) { return !x.future; }).map(function (x) { return x.t; });
@@ -324,8 +366,8 @@ class Component extends DCLogic {
       var ct = shown ? shown.t : (hourMode ? havg : curR);
       vals.center = {
         code: sensorName(SENSORS.indexOf(s)).toUpperCase(), mk: isH ? 'Н' : 'Т', temp: vfmt(ct), color: vcol(ct),
-        sub: shown ? shown.label : (hourMode ? hh(d[st.hourView].hd) + '–' + hh((d[st.hourView].hd + 1) % 24) : 'зараз'),
-        sub2: !shown && hourMode ? 'середня' : ''
+        sub: shown ? shown.label : (hourMode ? hh(d[st.hourView].hd) + '–' + hh((d[st.hourView].hd + 1) % 24) : (archive ? '' : 'зараз')),
+        sub2: shown ? '' : (hourMode ? 'середня' : (archive ? 'середня за добу' : ''))
       };
       // кутові кнопки: не менше ~56 px на екрані незалежно від масштабу кільця
       var bsz = Math.ceil(56 / vals.ringScale);
@@ -344,8 +386,10 @@ class Component extends DCLogic {
       for (var g = lo; g <= hi; g += step) gy.push({ y: Y(g).toFixed(1), t: g + '°' });
       var delta = d[23].t - d[0].t;
       vals.det = {
-        code: s.code, name: sensorName(SENSORS.indexOf(s)), now: fmt(cur[sel]), avg: fmt(mean), min: fmt(mn), max: fmt(mx),
-        minAt: hh(d[minK].hd), maxAt: hh(d[maxK].hd), color: tempColor(cur[sel]),
+        code: s.code, name: sensorName(SENSORS.indexOf(s)), now: fmt(archive ? latestOf(self.raw[sel]) : cur[sel]),
+        nowLabel: archive ? 'Остання за добу' : 'Зараз', humLabel: archive ? 'Вологість, середня' : 'Вологість зараз',
+        period: archive ? dayLabel(st.day) : '24 год', xEnd: archive ? '23:00' : 'зараз', avg: fmt(mean), min: fmt(mn), max: fmt(mx),
+        minAt: hh(d[minK].hd), maxAt: hh(d[maxK].hd), color: tempColor(archive ? latestOf(self.raw[sel]) : cur[sel]),
         hum: isFinite(self.hum[sel]) ? self.hum[sel].toFixed(1).replace('.', ',') + '%' : '—',
         line: line, area: line ? 'M' + X(0).toFixed(1) + ',' + Y(lo).toFixed(1) + ' L' + line.split(' ').join(' L') + ' L' + X(23).toFixed(1) + ',' + Y(lo).toFixed(1) + ' Z' : '',
         dot: { x: X(23).toFixed(1), y: isFinite(d[23].t) ? Y(d[23].t).toFixed(1) : -100 }, gridY: gy,
@@ -368,7 +412,7 @@ appEl = document.getElementById('app');
 comp = new Component({});
 renderNow();
 comp.load();
-setInterval(function () { comp.load(); }, REFRESH_MS);
+setInterval(function () { if (comp.state.day == null) comp.load(); }, REFRESH_MS);   // архів не оновлюємо
 window.addEventListener('resize', scheduleRender);
 
 document.getElementById('setupForm').addEventListener('submit', function (e) {

@@ -17,6 +17,28 @@ function buildReal(raw, now) {
   });
 }
 
+// Погодинні середні за конкретну добу (години 00…23); порожні години дотягуються сусідніми значеннями,
+// але позначаються filled — кільце малює їх сірими.
+function buildDay(raw, dayStart) {
+  return raw.map(function (arr) {
+    var pts = [];
+    for (var k = 0; k < 24; k++) {
+      var st = dayStart + k * 3600000, en = st + 3600000, sum = 0, c = 0;
+      for (var q = 0; q < arr.length; q++) { var p = arr[q]; if (p.ts >= st && p.ts < en) { sum += p.t; c++; } }
+      pts.push({ hd: k, start: st, t: c ? Math.round(sum / c * 10) / 10 : NaN, filled: !c });
+    }
+    var v = NaN;
+    for (var a = 0; a < 24; a++) { if (isFinite(pts[a].t)) v = pts[a].t; else pts[a].t = v; }
+    v = NaN;
+    for (var b = 23; b >= 0; b--) { if (isFinite(pts[b].t)) v = pts[b].t; else pts[b].t = v; }
+    return pts;
+  });
+}
+// Середнє значення за весь масив (за добу)
+function meanOf(arr) { return arr.length ? Math.round(arr.reduce(function (s, p) { return s + p.t; }, 0) / arr.length * 10) / 10 : NaN; }
+// Локальна північ дня, що містить ms
+function dayStartOf(ms) { var d = new Date(ms); d.setHours(0, 0, 0, 0); return d.getTime(); }
+
 function getKey() {
   if (READ_KEY) return READ_KEY;
   try { return localStorage.getItem('ts_read_key') || ''; } catch (e) { return ''; }
@@ -36,24 +58,47 @@ function hideSetup() { document.getElementById('setup').hidden = true; }
 // raw[i] / rawH[i] — відсортовані масиви { ts, t } температури / вологості датчика i, hum[i] — остання вологість.
 async function fetchFeeds(key) {
   if (/^0+$/.test(key)) return demoFeeds();
-  var url = 'https://api.thingspeak.com/channels/' + CHANNEL_ID + '/feeds.json?api_key=' + encodeURIComponent(key) + '&minutes=1500&results=8000';
+  return fetchUrl(key, '&minutes=1500&results=8000');
+}
+
+// Архів: дані за одну добу (локальна північ dayStart … +24 год). Минулі дні не змінюються — кешуємо.
+var dayCache = {};
+async function fetchDay(key, dayStart) {
+  if (/^0+$/.test(key)) return demoDay(dayStart);
+  var id = key + '|' + dayStart;
+  if (dayCache[id]) return dayCache[id];
+  var res = await fetchUrl(key, '&start=' + encodeURIComponent(utcStr(dayStart)) + '&end=' + encodeURIComponent(utcStr(dayStart + 86400000 - 1000)) + '&results=8000');
+  if (res && dayStart + 86400000 < Date.now()) dayCache[id] = res;
+  return res;
+}
+function utcStr(ms) {
+  var d = new Date(ms), p = function (n) { return String(n).padStart(2, '0'); };
+  return d.getUTCFullYear() + '-' + p(d.getUTCMonth() + 1) + '-' + p(d.getUTCDate()) + ' ' + p(d.getUTCHours()) + ':' + p(d.getUTCMinutes()) + ':' + p(d.getUTCSeconds());
+}
+
+var channelStart = null;   // дата створення каналу — раніше в історію не пускаємо
+async function fetchUrl(key, query) {
+  var url = 'https://api.thingspeak.com/channels/' + CHANNEL_ID + '/feeds.json?api_key=' + encodeURIComponent(key) + query;
   var r = await fetch(url, { cache: 'no-store' });
   var j = r.ok ? await r.json() : null;
   if (!j || !j.feeds) return null;
-  var raw = SENSORS.map(function () { return []; }), rawH = SENSORS.map(function () { return []; }), hum = SENSORS.map(function () { return NaN; }), lastTs = null;
-  j.feeds.forEach(function (fd) {
+  if (j.channel && j.channel.created_at) channelStart = Date.parse(j.channel.created_at);
+  return parseFeeds(j.feeds);
+}
+function parseFeeds(feeds) {
+  var raw = SENSORS.map(function () { return []; }), rawH = SENSORS.map(function () { return []; }), lastTs = null;
+  feeds.forEach(function (fd) {
     var ts = Date.parse(fd.created_at);
     if (!isFinite(ts)) return;
     SENSORS.forEach(function (s, i) {
       var t = parseFloat(fd[s.fT]), h = parseFloat(fd[s.fH]);
       if (isFinite(t)) raw[i].push({ ts: ts, t: t });
-      if (isFinite(h)) { hum[i] = h; rawH[i].push({ ts: ts, t: h }); }
+      if (isFinite(h)) rawH[i].push({ ts: ts, t: h });
     });
     if (lastTs == null || ts > lastTs) lastTs = ts;
   });
   raw.concat(rawH).forEach(function (a) { a.sort(function (x, y) { return x.ts - y.ts; }); });
-  hum = rawH.map(latestOf);
-  return { raw: raw, rawH: rawH, hum: hum, lastTs: lastTs };
+  return { raw: raw, rawH: rawH, hum: rawH.map(latestOf), lastTs: lastTs };
 }
 
 // Останній (поточний) показник датчика, округлений до 0,1; NaN, якщо даних немає
@@ -66,6 +111,10 @@ function isDemo() { var k = getKey(); return !!k && /^0+$/.test(k); }
 function sensorName(i) { return isDemo() ? 'Датчик ' + (i + 1) : SENSORS[i].name; }
 
 var demoCache = null;
+function demoParams() {
+  if (!demoCache) demoFeeds();
+  return demoCache.params;
+}
 function demoFeeds() {
   var STEP = 5 * 60000, now = Date.now(), end = now - now % STEP;
   if (!demoCache) {
@@ -89,5 +138,25 @@ function demoFeeds() {
   var cut = end - 25 * 3600000;
   function trim(arr) { return arr.map(function (a) { return a.filter(function (p) { return p.ts > cut; }); }); }
   var raw = trim(demoCache.raw), rawH = trim(demoCache.rawH);
+  return { raw: raw, rawH: rawH, hum: rawH.map(latestOf), lastTs: end };
+}
+
+// Демо-архів: відтворювані дані на будь-який день (той самий день — ті самі дані)
+function demoDay(dayStart) {
+  var params = demoParams(), STEP = 5 * 60000, end = Math.min(dayStart + 86400000 - STEP, Date.now());
+  var raw = SENSORS.map(function () { return []; }), rawH = SENSORS.map(function () { return []; });
+  params.forEach(function (p, i) {
+    var seed = (Math.floor(dayStart / 86400000) * 7919 + i * 104729) >>> 0;
+    var rnd = function () { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
+    var dayShift = (rnd() - 0.5) * 3;            // «погода» дня: тепліше/холодніше
+    for (var ts = dayStart; ts <= end; ts += STEP) {
+      var hr = (ts - dayStart) / 3600000;
+      var wave = Math.cos((hr - p.peak) / 24 * Math.PI * 2);
+      var t = p.base + dayShift + p.amp * wave + (rnd() - 0.5) * p.noise * 2;
+      var h = Math.max(5, Math.min(95, p.hBase - dayShift * 2 - wave * p.amp * 2.5 + (rnd() - 0.5) * 1.5));
+      raw[i].push({ ts: ts, t: Math.round(t * 100) / 100 });
+      rawH[i].push({ ts: ts, t: Math.round(h * 10) / 10 });
+    }
+  });
   return { raw: raw, rawH: rawH, hum: rawH.map(latestOf), lastTs: end };
 }

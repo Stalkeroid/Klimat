@@ -6,8 +6,8 @@
 <title>Клімат кімнати</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/theme.css?v=27">
-<link rel="stylesheet" href="css/style.css?v=27">
+<link rel="stylesheet" href="css/theme.css?v=29">
+<link rel="stylesheet" href="css/style.css?v=29">
 </head>
 <body>
 <div id="app"></div>
@@ -35,6 +35,15 @@
       <h1 style="margin: 0; font-family: var(--font-display); font-size: 30px; font-weight: 700; letter-spacing: -0.01em; color: var(--text)">Клімат кімнати</h1>
     </div>
     <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+      <!-- «машина часу»: перемикач дня -->
+      <div class="daynav" role="group" aria-label="Вибір дня">
+        <button class="dn-btn" type="button" onClick="{{prevDay}}" aria-label="Попередній день" aria-disabled="{{prevOff}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
+        <span class="dn-mid">
+          <button class="dn-day" type="button" onClick="{{openPicker}}" aria-label="Вибрати день: {{dayBtn}}">{{dayBtn}}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg></button>
+          <input class="day-pick" type="date" tabindex="-1" aria-hidden="true" value="{{dayPickValue}}" min="{{dayPickMin}}" max="{{dayPickMax}}" onChange="{{pickDay}}">
+        </span>
+        <button class="dn-btn" type="button" onClick="{{nextDay}}" aria-label="Наступний день" aria-disabled="{{nextOff}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+      </div>
       <span class="glass" role="status" title="{{badgeTitle}}" style="display: flex; align-items: center; gap: 8px; font-family: var(--font-data); font-size: 11px; font-weight: 500; letter-spacing: 0.08em; color: var(--text-2); border: 1px solid var(--stroke-strong); border-radius: var(--r-pill); padding: 7px 12px"><span style="width: 8px; height: 8px; border-radius: 50%; background: {{badgeColor}}; box-shadow: 0 0 8px {{badgeColor}}"></span>{{badge}}</span>
       
     </div>
@@ -149,14 +158,14 @@
         <section class="glass" style="display: flex; flex-direction: column; gap: 14px; border-radius: var(--r-lg); padding: 18px">
           <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px">
             <h2 style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text)">{{det.name}}</h2>
-            <span style="font-size: 12px; color: var(--text-3)">24 год</span>
+            <span style="font-size: 12px; color: var(--text-3)">{{det.period}}</span>
           </div>
           <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
-            <div class="tile" style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px"><span style="font-size: 12px; color: var(--text-3)">Зараз</span><span style="font-family: var(--font-num); font-size: 25px; font-weight: 600; color: {{det.color}}">{{det.now}}</span></div>
+            <div class="tile" style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px"><span style="font-size: 12px; color: var(--text-3)">{{det.nowLabel}}</span><span style="font-family: var(--font-num); font-size: 25px; font-weight: 600; color: {{det.color}}">{{det.now}}</span></div>
             <div class="tile" style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px"><span style="font-size: 12px; color: var(--text-3)">Середня</span><span style="font-family: var(--font-num); font-size: 25px; font-weight: 600">{{det.avg}}</span></div>
             <div class="tile" style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px"><span style="font-size: 12px; color: var(--text-3)">Мінімум · {{det.minAt}}</span><span style="font-family: var(--font-num); font-size: 20px; font-weight: 600; color: var(--cold)">{{det.min}}</span></div>
             <div class="tile" style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px"><span style="font-size: 12px; color: var(--text-3)">Максимум · {{det.maxAt}}</span><span style="font-family: var(--font-num); font-size: 20px; font-weight: 600; color: var(--warm)">{{det.max}}</span></div>
-            <div class="tile" style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; grid-column: 1 / -1"><span style="font-size: 12px; color: var(--text-3)">Вологість зараз</span><span style="font-family: var(--font-num); font-size: 20px; font-weight: 600; color: var(--cold)">{{det.hum}}</span></div>
+            <div class="tile" style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; grid-column: 1 / -1"><span style="font-size: 12px; color: var(--text-3)">{{det.humLabel}}</span><span style="font-family: var(--font-num); font-size: 20px; font-weight: 600; color: var(--cold)">{{det.hum}}</span></div>
           </div>
           <div style="display: flex; flex-direction: column; gap: 4px">
             <svg viewBox="0 0 320 112" width="100%" role="img" aria-label="{{det.chartAria}}" style="display: block">
@@ -168,7 +177,7 @@
               <circle cx="{{det.dot.x}}" cy="{{det.dot.y}}" r="4" fill="{{det.color}}" stroke-width="2" style="stroke: var(--bg)"></circle>
             </svg>
             <div style="display: flex; justify-content: space-between; font-family: var(--font-data); font-size: 10px; color: var(--text-4)">
-              <span>{{det.xStart}}</span><span>{{det.xMid}}</span><span>зараз</span>
+              <span>{{det.xStart}}</span><span>{{det.xMid}}</span><span>{{det.xEnd}}</span>
             </div>
             <div style="font-family: var(--font-data); font-size: 10px; color: var(--text-4)">шкала: {{det.yRange}}</div>
           </div>
@@ -182,7 +191,7 @@
           <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
             <div class="tile" style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px"><span style="font-size: 12px; color: var(--text-3)">Найтепліше</span><span style="font-size: 14px; font-weight: 600">{{room.warm}}</span></div>
             <div class="tile" style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px"><span style="font-size: 12px; color: var(--text-3)">Найпрохолодніше</span><span style="font-size: 14px; font-weight: 600">{{room.cool}}</span></div>
-            <div class="tile" style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px"><span style="font-size: 12px; color: var(--text-3)">Розкид зараз</span><span style="font-family: var(--font-num); font-size: 17px; font-weight: 600">{{room.spread}}</span></div>
+            <div class="tile" style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px"><span style="font-size: 12px; color: var(--text-3)">{{room.spreadLabel}}</span><span style="font-family: var(--font-num); font-size: 17px; font-weight: 600">{{room.spread}}</span></div>
             <div class="tile" style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px"><span style="font-size: 12px; color: var(--text-3)">Діапазон за добу</span><span style="font-family: var(--font-num); font-size: 17px; font-weight: 600">{{room.range}}</span></div>
           </div>
         </section>
@@ -193,12 +202,12 @@
 </div>
 </template>
 
-<script src="js/config.js?v=27"></script>
-<script src="js/engine.js?v=27"></script>
-<script src="js/room.js?v=27"></script>
-<script src="js/utils.js?v=27"></script>
-<script src="js/data.js?v=27"></script>
-<script src="js/markers.js?v=27"></script>
-<script src="js/app.js?v=27"></script>
+<script src="js/config.js?v=29"></script>
+<script src="js/engine.js?v=29"></script>
+<script src="js/room.js?v=29"></script>
+<script src="js/utils.js?v=29"></script>
+<script src="js/data.js?v=29"></script>
+<script src="js/markers.js?v=29"></script>
+<script src="js/app.js?v=29"></script>
 </body>
 </html>
