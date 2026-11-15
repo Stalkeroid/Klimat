@@ -9,6 +9,7 @@ function openCalendar(anchor, opts) {
   closeCalendar();
   var v = new Date(opts.value);
   cal = { anchor: anchor, opts: opts, y: v.getFullYear(), m: v.getMonth() };
+  anchor.setAttribute('aria-expanded', 'true');
   var el = document.createElement('div');
   el.className = 'cal';
   el.setAttribute('role', 'dialog');
@@ -35,6 +36,7 @@ function closeCalendar() {
   window.removeEventListener('resize', placeCalendar);
   window.removeEventListener('scroll', placeCalendar, true);
   var a = cal.anchor; cal = null;
+  a.setAttribute('aria-expanded', 'false');
   if (a && a.focus) a.focus({ preventScroll: true });
 }
 

@@ -6,8 +6,8 @@
 <title>Клімат кімнати</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/theme.css?v=30">
-<link rel="stylesheet" href="css/style.css?v=30">
+<link rel="stylesheet" href="css/theme.css?v=33">
+<link rel="stylesheet" href="css/style.css?v=33">
 </head>
 <body>
 <div id="app"></div>
@@ -30,13 +30,13 @@
 
 <template id="tpl">
 <div style="min-height: 900px; box-sizing: border-box; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 20px; background: transparent; color: var(--text); font-family: var(--font-text)">
-  <header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px">
-    <div style="display: flex; flex-direction: column; gap: 6px">
+  <!-- шапка повторює сітку main: ліва частина — над кімнатою (назва + стан), права — над колонкою справа (перемикач дня по центру) -->
+  <header class="top" style="display: flex; flex-wrap: wrap; align-items: center; gap: 20px">
+    <div class="top-left" style="flex: 999 1 640px; min-width: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 14px">
       <h1 style="margin: 0; font-family: var(--font-display); font-size: 30px; font-weight: 700; letter-spacing: -0.01em; color: var(--text)">Клімат кімнати</h1>
-    </div>
-    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
       <span class="status-chip" role="status" title="{{badgeTitle}}"><span style="width: 8px; height: 8px; border-radius: 50%; background: {{badgeColor}}; box-shadow: 0 0 8px {{badgeColor}}"></span>{{badge}}</span>
-      <!-- «машина часу»: перемикач дня -->
+    </div>
+    <div class="top-right" style="flex: 1 1 340px; min-width: 0; display: flex; justify-content: center">
       <div class="daynav" role="group" aria-label="Вибір дня">
         <button class="dn-btn" type="button" onClick="{{prevDay}}" aria-label="Попередній день" aria-disabled="{{prevOff}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
         <span class="dn-mid">
@@ -44,7 +44,6 @@
         </span>
         <button class="dn-btn" type="button" onClick="{{nextDay}}" aria-label="Наступний день" aria-disabled="{{nextOff}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
       </div>
-      
     </div>
   </header>
 
@@ -201,13 +200,13 @@
 </div>
 </template>
 
-<script src="js/config.js?v=30"></script>
-<script src="js/engine.js?v=30"></script>
-<script src="js/room.js?v=30"></script>
-<script src="js/utils.js?v=30"></script>
-<script src="js/data.js?v=30"></script>
-<script src="js/calendar.js?v=30"></script>
-<script src="js/markers.js?v=30"></script>
-<script src="js/app.js?v=30"></script>
+<script src="js/config.js?v=33"></script>
+<script src="js/engine.js?v=33"></script>
+<script src="js/room.js?v=33"></script>
+<script src="js/utils.js?v=33"></script>
+<script src="js/data.js?v=33"></script>
+<script src="js/calendar.js?v=33"></script>
+<script src="js/markers.js?v=33"></script>
+<script src="js/app.js?v=33"></script>
 </body>
 </html>
