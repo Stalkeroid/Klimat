@@ -262,6 +262,29 @@ class Component extends DCLogic {
     }
     if (all.length) room.range = fmt(Math.min.apply(null, all)) + ' – ' + fmt(Math.max.apply(null, all));
 
+    // огляд (коли датчик не вибрано): подія опалення + зв'язок датчиків
+    var heatIdx = SENSORS.findIndex(function (s0) { return s0.role === 'heater'; });
+    var heat = heatIdx >= 0 ? heatingState(self.raw[heatIdx]) : { on: null };
+    var sinceTxt = heat.since ? (dayStartOf(heat.since) === dayStartOf(archive ? st.day : Date.now()) ? hm(heat.since) : dayLabel(heat.since) + ' ' + hm(heat.since)) : '';
+    var online = 0;
+    var links = SENSORS.map(function (s0, i) {
+      var arr = self.raw[i], last = arr.length ? arr[arr.length - 1].ts : null;
+      var age = last ? Date.now() - last : Infinity;
+      var color = archive ? 'var(--text-4)' : age < 15 * 60000 ? 'var(--st-live)' : age < 60 * 60000 ? 'var(--st-stale)' : 'var(--st-error)';
+      if (!archive && age < 15 * 60000) online++;
+      return { name: sensorName(i), color: color, ago: last ? (archive ? hm(last) : agoText(last)) : '—', agoColor: !archive && age >= 15 * 60000 ? color : 'var(--text-3)' };
+    });
+    var ov = {
+      heatShow: heatIdx >= 0,
+      heatState: heat.on == null ? 'НЕВІДОМО' : (heat.on ? 'УВІМК' : 'ВИМК') + (sinceTxt ? ' · ' + sinceTxt : ''),
+      heatColor: heat.on ? 'var(--warm)' : 'var(--text-3)',
+      heatIcon: heat.on ? 'var(--warm)' : 'var(--text-4)',
+      heatTitle: 'Визначається за датчиком «' + (heatIdx >= 0 ? sensorName(heatIdx) : '') + '»: зміна на ' + HEAT_DELTA + '° і більше за ' + (HEAT_WINDOW / 60000) + ' хв',
+      linkTitle: archive ? 'ОСТАННІ ЗАПИСИ ДОБИ' : 'ЗВ’ЯЗОК ДАТЧИКІВ',
+      linkMeta: archive ? '' : online + '/' + SENSORS.length + ' НА ЗВ’ЯЗКУ',
+      links: links
+    };
+
     var badge, badgeColor;
     // індикатор статусу: стан + час останніх даних (замість підзаголовка)
     var tLast = self.lastTs ? ' · ' + hm(self.lastTs) : '';
@@ -276,7 +299,7 @@ class Component extends DCLogic {
     var badgeTitle = isDemo() ? 'Демо-режим: дані згенеровані випадково. Щоб підключити свій канал — «Змінити ключ ThingSpeak»' : self.lastTs ? 'Останні дані з ThingSpeak: ' + new Date(self.lastTs).toLocaleString('uk-UA') : 'ThingSpeak';
 
     var vals = {
-      faces: faces, markers: markers, list: list, room: room,
+      faces: faces, markers: markers, list: list, room: room, ov: ov,
       camT: camT, camTr: tr, sceneScale: ((window.innerWidth <= 700 ? 0.62 : 1) * st.zoom).toFixed(3), cursor: st.dragging ? 'grabbing' : 'grab',
       hasSel: sel != null, noSel: sel == null, ringOn: sel != null,
       updated: self.lastTs ? hm(self.lastTs) : '—',
