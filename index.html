@@ -6,8 +6,8 @@
 <title>Клімат кімнати</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/theme.css?v=29">
-<link rel="stylesheet" href="css/style.css?v=29">
+<link rel="stylesheet" href="css/theme.css?v=30">
+<link rel="stylesheet" href="css/style.css?v=30">
 </head>
 <body>
 <div id="app"></div>
@@ -35,16 +35,15 @@
       <h1 style="margin: 0; font-family: var(--font-display); font-size: 30px; font-weight: 700; letter-spacing: -0.01em; color: var(--text)">Клімат кімнати</h1>
     </div>
     <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+      <span class="status-chip" role="status" title="{{badgeTitle}}"><span style="width: 8px; height: 8px; border-radius: 50%; background: {{badgeColor}}; box-shadow: 0 0 8px {{badgeColor}}"></span>{{badge}}</span>
       <!-- «машина часу»: перемикач дня -->
       <div class="daynav" role="group" aria-label="Вибір дня">
         <button class="dn-btn" type="button" onClick="{{prevDay}}" aria-label="Попередній день" aria-disabled="{{prevOff}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
         <span class="dn-mid">
-          <button class="dn-day" type="button" onClick="{{openPicker}}" aria-label="Вибрати день: {{dayBtn}}">{{dayBtn}}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg></button>
-          <input class="day-pick" type="date" tabindex="-1" aria-hidden="true" value="{{dayPickValue}}" min="{{dayPickMin}}" max="{{dayPickMax}}" onChange="{{pickDay}}">
+          <button class="dn-day" type="button" aria-haspopup="dialog" onClick="{{openPicker}}" aria-label="Вибрати день: {{dayBtn}}">{{dayBtn}}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg></button>
         </span>
         <button class="dn-btn" type="button" onClick="{{nextDay}}" aria-label="Наступний день" aria-disabled="{{nextOff}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
       </div>
-      <span class="glass" role="status" title="{{badgeTitle}}" style="display: flex; align-items: center; gap: 8px; font-family: var(--font-data); font-size: 11px; font-weight: 500; letter-spacing: 0.08em; color: var(--text-2); border: 1px solid var(--stroke-strong); border-radius: var(--r-pill); padding: 7px 12px"><span style="width: 8px; height: 8px; border-radius: 50%; background: {{badgeColor}}; box-shadow: 0 0 8px {{badgeColor}}"></span>{{badge}}</span>
       
     </div>
   </header>
@@ -202,12 +201,13 @@
 </div>
 </template>
 
-<script src="js/config.js?v=29"></script>
-<script src="js/engine.js?v=29"></script>
-<script src="js/room.js?v=29"></script>
-<script src="js/utils.js?v=29"></script>
-<script src="js/data.js?v=29"></script>
-<script src="js/markers.js?v=29"></script>
-<script src="js/app.js?v=29"></script>
+<script src="js/config.js?v=30"></script>
+<script src="js/engine.js?v=30"></script>
+<script src="js/room.js?v=30"></script>
+<script src="js/utils.js?v=30"></script>
+<script src="js/data.js?v=30"></script>
+<script src="js/calendar.js?v=30"></script>
+<script src="js/markers.js?v=30"></script>
+<script src="js/app.js?v=30"></script>
 </body>
 </html>

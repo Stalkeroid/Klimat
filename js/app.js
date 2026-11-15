@@ -37,7 +37,6 @@ var MONTHS = ['СІЧ', 'ЛЮТ', 'БЕР', 'КВІ', 'ТРА', 'ЧЕР', 'ЛИ�
 var WEEKDAYS = ['НД', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
 function dayLabel(ms) { var d = new Date(ms); return d.getDate() + ' ' + MONTHS[d.getMonth()]; }
 function weekday(ms) { return WEEKDAYS[new Date(ms).getDay()]; }
-function isoDate(ms) { var d = new Date(ms); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
 
 class Component extends DCLogic {
   constructor(props) {
@@ -183,14 +182,14 @@ class Component extends DCLogic {
     var badge, badgeColor;
     // індикатор статусу: стан + час останніх даних (замість підзаголовка)
     var tLast = self.lastTs ? ' · ' + hm(self.lastTs) : '';
-    if (st.status === 'ok' && archive) { badge = (isDemo() ? 'ДЕМО · ' : '') + 'АРХІВ'; badgeColor = 'var(--text-3)'; }   // дата — у перемикачі поруч
-    else if (st.status === 'ok' && isDemo()) { badge = 'ДЕМО · ВИПАДКОВІ ДАНІ'; badgeColor = 'var(--accent)'; }
-    else if (st.status === 'loading') { badge = 'ЗАВАНТАЖЕННЯ'; badgeColor = 'var(--text-3)'; }
-    else if (st.status === 'ok' && self.lastTs && Date.now() - self.lastTs < 15 * 60000) { badge = 'НАЖИВО' + tLast; badgeColor = '#5BC28A'; }
-    else if (st.status === 'ok' && self.lastTs) { badge = 'НЕМАЄ ДАНИХ' + tLast; badgeColor = '#E9B44C'; }
-    else if (st.status === 'ok') { badge = 'КАНАЛ ПОРОЖНІЙ'; badgeColor = '#E9B44C'; }
-    else if (st.status === 'error') { badge = 'НЕМАЄ ЗВ’ЯЗКУ' + tLast; badgeColor = '#E8553F'; }
-    else { badge = 'ПОТРІБЕН КЛЮЧ'; badgeColor = '#E8553F'; }
+    if (st.status === 'ok' && archive) { badge = (isDemo() ? 'ДЕМО · ' : '') + 'АРХІВ'; badgeColor = 'var(--st-archive)'; }   // дата — у перемикачі поруч
+    else if (st.status === 'ok' && isDemo()) { badge = 'ДЕМО · ВИПАДКОВІ ДАНІ'; badgeColor = 'var(--st-demo)'; }
+    else if (st.status === 'loading') { badge = 'ЗАВАНТАЖЕННЯ'; badgeColor = 'var(--st-loading)'; }
+    else if (st.status === 'ok' && self.lastTs && Date.now() - self.lastTs < 15 * 60000) { badge = 'НАЖИВО' + tLast; badgeColor = 'var(--st-live)'; }
+    else if (st.status === 'ok' && self.lastTs) { badge = 'НЕМАЄ ДАНИХ' + tLast; badgeColor = 'var(--st-stale)'; }
+    else if (st.status === 'ok') { badge = 'КАНАЛ ПОРОЖНІЙ'; badgeColor = 'var(--st-stale)'; }
+    else if (st.status === 'error') { badge = 'НЕМАЄ ЗВ’ЯЗКУ' + tLast; badgeColor = 'var(--st-error)'; }
+    else { badge = 'ПОТРІБЕН КЛЮЧ'; badgeColor = 'var(--st-error)'; }
     var badgeTitle = isDemo() ? 'Демо-режим: дані згенеровані випадково. Щоб підключити свій канал — «Змінити ключ ThingSpeak»' : self.lastTs ? 'Останні дані з ThingSpeak: ' + new Date(self.lastTs).toLocaleString('uk-UA') : 'ThingSpeak';
 
     var vals = {
@@ -201,12 +200,13 @@ class Component extends DCLogic {
       badge: badge, badgeColor: badgeColor, badgeTitle: badgeTitle,
       // перемикач дня
       dayBtn: archive ? dayLabel(st.day) + ' · ' + weekday(st.day) : 'СЬОГОДНІ',
-      dayPickValue: isoDate(archive ? st.day : Date.now()), dayPickMax: isoDate(Date.now()), dayPickMin: isoDate(self.minDay()),
       prevOff: (archive ? st.day : dayStartOf(Date.now())) > self.minDay() ? 'false' : 'true', nextOff: archive ? 'false' : 'true',
       prevDay: function () { var base = self.state.day != null ? self.state.day : dayStartOf(Date.now()); self.setDay(dayStartOf(base - 12 * 3600000)); },
       nextDay: function () { if (self.state.day != null) self.setDay(dayStartOf(self.state.day + 36 * 3600000)); },
-      openPicker: function () { var inp = document.querySelector('.day-pick'); if (!inp) return; try { inp.showPicker(); } catch (e) { inp.focus(); inp.click(); } },
-      pickDay: function (e) { var v = e.target.value; if (!v) return; var p = v.split('-'); self.setDay(new Date(+p[0], +p[1] - 1, +p[2]).getTime()); },
+      openPicker: function (e) {
+        if (cal) { closeCalendar(); return; }
+        openCalendar(e.currentTarget, { value: self.state.day != null ? self.state.day : Date.now(), min: self.minDay(), max: dayStartOf(Date.now()), onPick: function (d) { self.setDay(d); } });
+      },
       // легенда: граничні значення активного режиму — білі; поки датчик не вибрано — обидві сірі
       lg: sel == null ? { t: 'var(--text-3)', h: 'var(--text-3)' } : (st.metric === 'h' ? { t: 'var(--text-3)', h: 'var(--text)' } : { t: 'var(--text)', h: 'var(--text-3)' }),
       changeKey: function () { showSetup(); },
