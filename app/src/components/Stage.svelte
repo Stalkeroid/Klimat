@@ -152,8 +152,8 @@
   .lg-lab { transition: color .2s; }
   .legend-bar { display: block; width: 120px; height: 8px; border-radius: var(--r-xs); }
   /* кольори шкал — ті самі, що STOPS/HSTOPS у lib/utils.js */
-  .legend-bar.hum { background: linear-gradient(90deg, rgb(255,150,20), rgb(255,214,64) 30%, rgb(40,200,255) 45%, rgb(40,120,255) 70%, rgb(90,60,255)); }
-  .legend-bar.temp { background: linear-gradient(90deg, rgb(40,100,255), rgb(0,190,255) 25%, rgb(255,222,60) 36.7%, rgb(255,130,25) 53.3%, rgb(255,50,45)); }
+  .legend-bar.hum { background: linear-gradient(90deg, rgb(245,150,60) 0.0%, rgb(245,205,140) 30.0%, rgb(232,222,208) 40.0%, rgb(120,175,245) 50.0%, rgb(60,120,240) 70.0%, rgb(100,80,230) 100.0%); }
+  .legend-bar.temp { background: linear-gradient(90deg, rgb(45,95,235) 0.0%, rgb(60,150,245) 20.0%, rgb(172,198,242) 31.0%, rgb(240,224,204) 35.0%, rgb(252,175,85) 42.0%, rgb(248,118,48) 53.3%, rgb(228,45,55) 100.0%); }
 
   @media (max-width: 700px) {
     .stage { height: 464px; }
