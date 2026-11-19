@@ -34,7 +34,7 @@
     if (!store.archive && !reduced && prevTs != null && ts != null && ts > prevTs) {
       run++; pulseOn = true;
       clearTimeout(pulseTimer);
-      const p = EFFECTS.pulse, longest = (vw + PER + 60 + (p.body + p.tail) * (1 + p.spread)) / (p.speed * (1 - p.spread)) * 1000;
+      const p = EFFECTS.pulse, sp = p.spread, longest = (vw + 60 + (p.body + p.tail) * (1 + Math.max(sp.body, sp.tail))) / (p.speed * (1 - sp.speed)) * 1000;
       pulseTimer = setTimeout(() => (pulseOn = false), longest + 200);
     }
     prevTs = store.archive ? null : ts;

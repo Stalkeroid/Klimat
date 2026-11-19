@@ -6,7 +6,8 @@
 //
 // Розкид:
 //   'random' — у кожної лінії свої значення з діапазонів (з генератора лінії: той самий сид → те саме);
-//   'front'  — спільний старт і спільні базові значення, на кожній лінії лише невеликий розкид (spread, частка).
+//   'front'  — спільний старт і спільні базові значення, на кожній лінії лише невеликий розкид
+//              (spread: частка, однакова для всіх атрибутів, або { атрибут: частка }).
 // Щоб додати новий ефект, досить дописати рецепт і умову, коли він увімкнений.
 
 import { rngFor, between } from './isolines.js';
@@ -31,7 +32,7 @@ export const EFFECTS = {
     kind: 'look', trigger: 'newReading',
     color: '255,255,255', alpha: 0.28, alphaOdd: 0.28, width: 1.2,
     body: 200, tail: 110, speed: 620,        // базові значення
-    spread: 0.08                             // ±8 % на кожній лінії
+    spread: { speed: 0.015, body: 0.08, tail: 0.08 }   // фронт «стіною»: швидкість ±1,5 %, довжина тіла й хвоста ±8 %
   },
 
   // немає світла: лінії плавно гальмують до повної зупинки; вигляд — пунктир (look.dashedWhenOff)
@@ -47,7 +48,8 @@ function pick(r, v, spread) {
 // параметри ефекту вигляду для лінії k (детерміновано: сид лінії + назва ефекту; для 'front' — ще й номер запуску)
 export function fxParams(name, k, run = 0) {
   const e = EFFECTS[name], r = rngFor(k, name + ':' + run);
-  const body = pick(r, e.body, e.spread), tail = pick(r, e.tail, e.spread), speed = pick(r, e.speed, e.spread);
+  const sp = (a) => (e.spread && typeof e.spread === 'object' ? e.spread[a] : e.spread);
+  const body = pick(r, e.body, sp('body')), tail = pick(r, e.tail, sp('tail')), speed = pick(r, e.speed, sp('speed'));
   const pause = e.pause ? pick(r, e.pause) : 0;
   return { body, tail, speed, pause, offset: r() };   // offset — зсув першої появи (частка циклу) для 'random'
 }
