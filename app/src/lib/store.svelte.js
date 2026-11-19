@@ -2,9 +2,11 @@
 // Тут лише «джерела правди» і дії над ними. Що й як показувати, кожен компонент вираховує сам ($derived),
 // тож при обертанні кімнати оновлюється тільки камера, а не список, панель чи кільце.
 import { SENSORS } from './config.js';
+import { powerTimeline } from './power.js';
 import { buildReal, buildDay, meanOf, latestOf, dayStartOf, getKey, saveKey, fetchFeeds, fetchDay, channelStart, isDemo } from './data.js';
 
 const empty = () => SENSORS.map(() => []);
+const HEATER = SENSORS.findIndex((s) => s.role === 'heater');
 
 export class Store {
   // ---------- інтерфейс ----------
@@ -41,6 +43,13 @@ export class Store {
   cur = $derived(this.raw.map(this.archive ? meanOf : latestOf));
   hum = $derived(this.rawH.map(this.archive ? meanOf : latestOf));
   narrow = $derived(this.vw <= 700);
+  // світло за показаний день (наживо — з 00:00 до «зараз»): відрізки є / немає / невідомо + поточний стан
+  power = $derived.by(() => {
+    const from = this.archive ? this.day : dayStartOf(this.now);
+    return powerTimeline(HEATER < 0 ? [] : this.raw[HEATER], from, from + 86400000, this.archive ? null : this.now);
+  });
+  // батарея зараз гріє: світло є і вона гаряча (поза сезоном опалення теплих хвиль не буде)
+  heating = $derived(!this.archive && this.power.state === 'on' && HEATER >= 0 && latestOf(this.raw[HEATER]) >= 30);
 
   // службове (не впливає на відображення)
   loadToken = 0;

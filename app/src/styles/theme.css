@@ -1,16 +1,11 @@
 /* =====================================================================
-   ТЕМА «Графіт · інженерна»
+   ТЕМА «Графіт · насичена»
    Усі кольори, радіуси, обводки і фон-патерн — лише тут. Без прозорості й розмиття (швидко на телефоні).
    Щоб змінити вигляд, правте значення змінних; решта коду їх тільки використовує.
    ===================================================================== */
 :root {
   /* --- фон сторінки і патерн (інженерна сітка) --- */
   --bg:            #0A0B0D;                 /* базовий колір під усім */
-  --grid-minor:    rgba(255,255,255,0.028); /* дрібна сітка */
-  --grid-major:    rgba(255,255,255,0.055); /* крупна сітка */
-  --grid-step:     24px;                    /* крок дрібної сітки */
-  --grid-major-step: 120px;                 /* крок крупної сітки (кратний дрібному) */
-  --bg-glow:       rgba(140,200,230,0.06);  /* ледь помітне світло зверху */
 
   /* --- поверхні (плашки) — непрозорі, без розмиття: швидко рендеряться --- */
   --surface:       #15171A;                 /* панелі, рядки списку, область кімнати */
@@ -23,9 +18,9 @@
   --button-active: #3A3F46;
 
   /* --- обводки --- */
-  --stroke:        rgba(255,255,255,0.09);  /* звичайна обводка плашок */
-  --stroke-strong: rgba(255,255,255,0.16);  /* кнопки, значок статусу */
-  --highlight:     rgba(255,255,255,0.05);  /* світлий верхній край плашок */
+  --stroke:        rgba(255,255,255,0.10);  /* звичайна обводка плашок */
+  --stroke-strong: rgba(255,255,255,0.20);  /* кнопки, значок статусу */
+  --highlight:     rgba(255,255,255,0.06);  /* світлий верхній край плашок */
 
   /* --- радіуси (інженерний вигляд — невеликі) --- */
   --r-lg:   10px;   /* область кімнати, великі панелі */
@@ -45,57 +40,48 @@
   --font-data:    'JetBrains Mono', ui-monospace, monospace; /* дрібні дані: час, осі, шкали */
 
   /* --- текст --- */
-  --text:   #EDEFF2;
-  --text-2: #C4C9D0;
-  --text-3: #9CA2AB;
-  --text-4: #7F868F;
+  --text:   #F4F6F8;
+  --text-2: #D2D7DE;
+  --text-3: #A7AEB8;
+  --text-4: #868D97;
 
   /* --- акценти --- */
-  --accent:      #8CC8E6;
-  --accent-hover:#A3D4EC;
+  --accent:      #F4F6F8;
+  --accent-hover:#FFFFFF;
   --danger:      #F59E8B;  /* помилки */
-  --accent-soft: rgba(140,200,230,0.09);
-  --accent-line: rgba(140,200,230,0.50);
-  --cold: #8EC9F5;  /* мінімум */
-  --warm: #F7B57A;  /* максимум */
+  --accent-soft: #24272C;
+  --accent-line: #6A717B;
+  --cold: #38B6FF;  /* мінімум */
+  --warm: #FF8A2A;  /* максимум */
 
   /* --- статус (крапка в шапці) --- */
-  --st-live:    #5BC28A;  /* наживо */
+  --st-live:    #3EE08A;  /* наживо */
   --st-stale:   #E9B44C;  /* шлюз мовчить */
   --st-error:   #E8553F;  /* немає зв'язку / ключа */
   --st-archive: #8CC8E6;  /* перегляд минулого дня */
   --st-demo:    #B79CF2;  /* демо-дані */
   --st-loading: #7F868F;
 
+  /* --- живий фон і смуга доби --- */
+  --iso-line:   rgba(255,255,255,0.060);  /* яскравіші ізотерми */
+  --iso-line-2: rgba(255,255,255,0.036);  /* тьмяніші (через одну) */
+  --iso-heat:   255,140,50;               /* теплі хвилі від батареї (r,g,b) */
+  --pw-on:      rgba(255,165,60,0.60);    /* смуга доби: світло є */
+  --pw-off:     rgb(48,55,80);            /* світла немає */
+  --pw-unk:     rgba(255,255,255,0.70);   /* невідомо — пунктир */
+  --pw-future:  #1E2126;                  /* ще не настало */
+
   /* --- кільце статистики --- */
   --ring-disc:  rgba(12,13,16,0.82);
   --ring-core:  #0A0B0D;
-  --ring-axis:  #7D838C;
-  --ring-grid:  rgba(255,255,255,0.10);
+  --ring-axis:  #868D97;
+  --ring-grid:  rgba(255,255,255,0.12);
   --seg-empty:  #262A30;
   --label-bg:   rgba(12,13,16,0.86);       /* підписи маркерів у кімнаті */
 }
 
-/* --- патерн фону: статична інженерна сітка з м'яким згасанням до країв --- */
+/* --- фон: базовий колір; рухомі ізотерми, смуга доби й стани — у components/LiveBackground.svelte, DayStrip.svelte --- */
 body { background: var(--bg); font-family: var(--font-text); font-variant-numeric: tabular-nums; }
-body::before {
-  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background-image:
-    radial-gradient(ellipse 120% 90% at 50% 20%, transparent 45%, var(--bg) 100%),
-    radial-gradient(ellipse 80% 50% at 50% 0%, var(--bg-glow), transparent 70%),
-    linear-gradient(var(--grid-major) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
-    linear-gradient(var(--grid-minor) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px);
-  background-size:
-    100% 100%, 100% 100%,
-    var(--grid-major-step) var(--grid-major-step), var(--grid-major-step) var(--grid-major-step),
-    var(--grid-step) var(--grid-step), var(--grid-step) var(--grid-step);
-}
-/* необов'язковий рух фону (BG_ANIMATE у js/config.js). Повільний дрейф сітки */
-body.bg-anim::before { animation: gridDrift 90s linear infinite; }
-@keyframes gridDrift { to { background-position: 0 0, 0 0, 0 var(--grid-major-step), var(--grid-major-step) 0, 0 var(--grid-major-step), var(--grid-major-step) 0; } }
-@media (prefers-reduced-motion: reduce) { body.bg-anim::before { animation: none; } }
 
 /* --- плашки (клас лишився .glass з історичних причин) --- */
 .glass {

@@ -5,7 +5,7 @@
 export const CHANNEL_ID = '3579358';
 export const READ_KEY   = '';          // можна вписати сюди; інакше сторінка попросить ключ і запам'ятає
 export const REFRESH_MS = 60000;       // як часто оновлювати дані
-export const BG_ANIMATE = false;       // повільний рух сітки на фоні (на слабких телефонах може гальмувати разом із розмиттям)
+export const BG_ANIMATE = true;        // живий фон (ізотерми, тепло, хвиля нового заміру); false — лінії нерухомі
 
 export const SENSORS = [
   { id: 'd1', code: 'Д1', name: 'Диван', pos: [12, 62, 510], cam: { ry: -50, rx: -16, zoom: 70 }, fT: 'field1', fH: 'field2' },

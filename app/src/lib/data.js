@@ -108,6 +108,36 @@ export function isDemo() { var k = getKey(); return !!k && /^0+$/.test(k); }
 export function sensorName(i) { return isDemo() ? 'Датчик ' + (i + 1) : SENSORS[i].name; }
 
 export let demoCache = null;
+
+// Демо-батарея: гаряча, коли є світло, і остигає під час відключень (1–2 на добу, відтворювані для кожного дня).
+// Повертає температуру на момент ts (кроки по 5 хв), модель — експоненти нагріву/остигання.
+const heaterDays = {};
+function demoOutages(dayStart) {
+  var seed = (Math.floor(dayStart / 86400000) * 2654435761) >>> 0;
+  var rnd = function () { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
+  var out = [], n = rnd() < 0.35 ? 1 : 2;
+  for (var k = 0; k < n; k++) {
+    var a = Math.round((k ? 13 + rnd() * 7 : 5 + rnd() * 6) * 12) * 5;   // хвилини від півночі, кратні 5
+    out.push([a, a + Math.round((1.5 + rnd() * 2.5) * 12) * 5]);
+  }
+  return out;
+}
+function demoHeaterDay(dayStart) {
+  if (heaterDays[dayStart]) return heaterDays[dayStart];
+  // моделюємо з попереднього дня, щоб на північ температура була «природною»
+  var prev = demoOutages(dayStart - 86400000).map(function (o) { return [o[0] - 1440, o[1] - 1440]; });
+  var outs = prev.concat(demoOutages(dayStart)), t = 47, res = [];
+  for (var m = -1440; m < 1440; m += 5) {
+    var off = outs.some(function (o) { return m >= o[0] && m < o[1]; });
+    t = off ? 22 + (t - 22) * Math.exp(-5 / 55) : 47 - (47 - t) * Math.exp(-5 / 12);
+    if (m >= 0) res.push(t);
+  }
+  return (heaterDays[dayStart] = res);
+}
+function demoHeaterAt(ts) {
+  var ds = dayStartOf(ts), i = Math.floor((ts - ds) / 300000);
+  return demoHeaterDay(ds)[Math.max(0, Math.min(287, i))];
+}
 export function demoParams() {
   if (!demoCache) demoFeeds();
   return demoCache.params;
@@ -125,7 +155,7 @@ export function demoFeeds() {
     var hr = new Date(ts).getHours() + new Date(ts).getMinutes() / 60;
     demoCache.params.forEach(function (p, i) {
       var wave = Math.cos((hr - p.peak) / 24 * Math.PI * 2);
-      var t = p.base + p.amp * wave + (Math.random() - 0.5) * p.noise * 2;
+      var t = SENSORS[i].role === 'heater' ? demoHeaterAt(ts) + (Math.random() - 0.5) * 0.2 : p.base + p.amp * wave + (Math.random() - 0.5) * p.noise * 2;
       var h = Math.max(5, Math.min(95, p.hBase - wave * p.amp * 2.5 + (Math.random() - 0.5) * 1.5));
       demoCache.raw[i].push({ ts: ts, t: Math.round(t * 100) / 100 });
       demoCache.rawH[i].push({ ts: ts, t: Math.round(h * 10) / 10 });
@@ -149,7 +179,7 @@ export function demoDay(dayStart) {
     for (var ts = dayStart; ts <= end; ts += STEP) {
       var hr = (ts - dayStart) / 3600000;
       var wave = Math.cos((hr - p.peak) / 24 * Math.PI * 2);
-      var t = p.base + dayShift + p.amp * wave + (rnd() - 0.5) * p.noise * 2;
+      var t = SENSORS[i].role === 'heater' ? demoHeaterAt(ts) + (rnd() - 0.5) * 0.2 : p.base + dayShift + p.amp * wave + (rnd() - 0.5) * p.noise * 2;
       var h = Math.max(5, Math.min(95, p.hBase - dayShift * 2 - wave * p.amp * 2.5 + (rnd() - 0.5) * 1.5));
       raw[i].push({ ts: ts, t: Math.round(t * 100) / 100 });
       rawH[i].push({ ts: ts, t: Math.round(h * 10) / 10 });
