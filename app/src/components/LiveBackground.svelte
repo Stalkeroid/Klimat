@@ -1,11 +1,11 @@
 <!-- Живий фон. Лінії-пустишки (lib/isolines.js) рухаються за своїми сидами; усе видиме — ефекти (lib/effects.js).
-     Ефекти вигляду живуть усередині своєї лінії, тож їдуть разом із нею без жодної синхронізації,
-     а вздовж лінії рухаються самі, зі своїми швидкістю, тілом, хвостом і частотою.
+     Ефект вигляду — «вікно», що їде вздовж лінії в координатах екрана зі своїми швидкістю, тілом, хвостом і частотою;
+     усередині вікна — копія лінії, яка рухається точно як лінія (та сама анімація й темп), тож ефект лежить рівно на ній.
      Усі рухи — transform і прозорість (рахує відеокарта); скрипт лише кілька разів на секунду коригує темп ліній. -->
 <script>
   import { fade } from 'svelte/transition';
   import { BG_ANIMATE } from '../lib/config.js';
-  import { STEP, PER, AMP_MAX, linePath, registerTrack, setMotion } from '../lib/isolines.js';
+  import { STEP, PER, AMP_MAX, linePath, registerTrack, followTrack, setMotion } from '../lib/isolines.js';
   import { EFFECTS, fxParams } from '../lib/effects.js';
 
   let { store } = $props();
@@ -40,16 +40,17 @@
     prevTs = store.archive ? null : ts;
   });
 
-  // лінія: реєструється в системі руху
+  // лінія: реєструється в системі руху; копія лінії в ефекті рухається точно як вона
   function track(node, k) { return { destroy: registerTrack(k, node) }; }
+  function follow(node, k) { return { destroy: followTrack(k, node) }; }
 
-  // вікно ефекту вигляду: їде вздовж лінії зі своєю швидкістю; вміст вікна (копія лінії) стоїть на місці лінії
+  // вікно ефекту вигляду: їде в координатах екрана зі своєю швидкістю; вміст вікна (копія лінії) лежить точно на лінії
   function fx(node, { name, k, run }) {
     const e = EFFECTS[name], p = fxParams(name, k, run), inner = node.firstElementChild;
     const w = p.body + p.tail;
     node.style.width = w + 'px';
     node.style.setProperty('--tail', p.tail + 'px');
-    const x0 = -w, x1 = name === 'heat' ? e.fadeTo * vw + PER : vw + PER + 60;
+    const x0 = -w, x1 = name === 'heat' ? e.fadeTo * vw : vw + 60;
     const travel = (x1 - x0) / p.speed * 1000, cycle = travel + p.pause * 1000, q = travel / cycle;
     let a, b;
     if (name === 'heat') {
@@ -87,16 +88,16 @@
      style:--pulse="rgba({EFFECTS.pulse.color},{EFFECTS.pulse.alpha})">
   {#key width + ':' + vh}
     {#each lines as l (l.k)}
-      <div class="track" style:top="{l.top}px" style:height="{l.h}px" use:track={l.k}>
-        {@render path(l, 'look')}
+      <div class="lane" style:top="{l.top}px" style:height="{l.h}px">
+        <div class="track" use:track={l.k}>{@render path(l, 'look')}</div>
         {#if heatOn}
           <div class="fxwrap" transition:fade={{ duration: EFFECTS.heat.fadeMs }}>
-            <div class="fx" use:fx={{ name: 'heat', k: l.k, run: 0 }}><div class="fx-in">{@render path(l, 'heat')}</div></div>
+            <div class="fx" use:fx={{ name: 'heat', k: l.k, run: 0 }}><div class="fx-in"><div class="track" use:follow={l.k}>{@render path(l, 'heat')}</div></div></div>
           </div>
         {/if}
         {#if pulseOn}
           {#key run}
-            <div class="fx" use:fx={{ name: 'pulse', k: l.k, run }}><div class="fx-in">{@render path(l, 'pulse')}</div></div>
+            <div class="fx" use:fx={{ name: 'pulse', k: l.k, run }}><div class="fx-in"><div class="track" use:follow={l.k}>{@render path(l, 'pulse')}</div></div></div>
           {/key}
         {/if}
       </div>
@@ -108,7 +109,8 @@
   .bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
   svg { display: block; overflow: visible; }
   path { fill: none; }
-  .track { position: absolute; left: 0; will-change: transform; }
+  .lane { position: absolute; left: 0; right: 0; }
+  .track { position: absolute; left: 0; top: 0; will-change: transform; }
   .fxwrap { position: absolute; inset: 0; }
   /* вікно ефекту: тіло + хвіст, що згасає назад (маска) */
   .fx { position: absolute; left: 0; top: 0; height: 100%; overflow: hidden; will-change: transform, opacity;

@@ -65,6 +65,7 @@ export function linePath(k, width) {
 // ---------- система руху ----------
 // Анімація лінії: зсув на одну довжину хвилі за PER·1000 мс при playbackRate = 1, тобто playbackRate = px/с.
 const tracks = new Map();            // k → Animation
+const followers = new Map();         // k → Set(Animation) — копії руху лінії для шарів ефектів
 const offsets = new Map();           // k → останній зсув (px) — щоб після зміни розміру лінія продовжила з того ж місця
 const rates = new Map();             // k → поточний темп
 const modifiers = new Map();         // назва → { factor, ease, priority }
@@ -79,6 +80,19 @@ export function registerTrack(k, el) {
   tracks.set(k, anim);
   if (!timer) timer = setInterval(tick, 250);
   return () => { offsets.set(k, (anim.currentTime / 1000) % PER); anim.cancel(); tracks.delete(k); };
+}
+
+// Елемент ефекту, що має рухатися точно як лінія k: та сама анімація, поточний момент і темп лінії.
+// Потрібно, бо вікно ефекту їде в координатах екрана (без «перескоку» лінії на довжину хвилі в кінці циклу),
+// а вміст вікна — копія лінії — мусить лежати точно на ній.
+export function followTrack(k, el) {
+  const src = tracks.get(k);
+  const anim = el.animate([{ transform: `translateX(${-PER}px)` }, { transform: 'translateX(0)' }], { duration: PER * 1000, iterations: Infinity });
+  // прив'язка до того самого моменту на шкалі часу документа — копія збігається з лінією точно
+  if (src) { anim.playbackRate = src.playbackRate; if (src.startTime != null) anim.startTime = src.startTime; else anim.currentTime = src.currentTime; }
+  if (!followers.has(k)) followers.set(k, new Set());
+  followers.get(k).add(anim);
+  return () => { anim.cancel(); followers.get(k)?.delete(anim); };
 }
 
 // множник від ефектів руху: діє ефект з найвищим старшинством
@@ -102,6 +116,9 @@ function tick() {
     const target = lineSpeed(k, t) * f, cur = rates.get(k);
     const next = cur + Math.max(-maxStep, Math.min(maxStep, target - cur));
     // дрібні зміни не застосовуємо — повільна зміна темпу оновлюється приблизно раз на секунду, а гальмування — плавно щокроку
-    if (Math.abs(next - cur) >= 0.05 || (next === 0 && cur !== 0)) { anim.updatePlaybackRate(next); rates.set(k, next); }
+    if (Math.abs(next - cur) >= 0.05 || (next === 0 && cur !== 0)) {
+      anim.updatePlaybackRate(next); rates.set(k, next);
+      followers.get(k)?.forEach((f) => f.updatePlaybackRate(next));
+    }
   }
 }
