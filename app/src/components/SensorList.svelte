@@ -5,6 +5,8 @@
   import { sensorName } from '../lib/data.js';
 
   let { store } = $props();
+  const pid = $props.id();
+  const uid = 'spark-' + pid;
 
   // від даних — спарклайни й значення; від вибору — лише підсвітка (окремо, щоб клік не перебудовував графіки)
   const rows = $derived(SENSORS.map((s, i) => {
@@ -13,7 +15,9 @@
     const span = Math.max(0.5, mx - mn);
     const spark = fin.length ? d.map((p, k) => (2 + k * 68 / 23).toFixed(1) + ',' + (23 - (p.t - mn) / span * 20).toFixed(1)).join(' ') : '';
     const t = store.cur[i], h = store.hum[i];
-    return { name: sensorName(i), temp: fmt(t), color: tempColor(t), spark, hum: isFinite(h) ? 'Н: ' + Math.round(h) + '%' : '' };
+    // градієнт спарклайна: верх — колір максимуму, низ — мінімуму
+    const grad = fin.length ? [0, 0.25, 0.5, 0.75, 1].map((k) => ({ o: k, c: tempColor(mn + span * (1 - k)) })) : [];
+    return { name: sensorName(i), temp: fmt(t), color: tempColor(t), spark, grad, hum: isFinite(h) ? 'Н: ' + Math.round(h) + '%' : '' };
   }));
 
   function pick(i) { store.moved = false; store.select(i); }
@@ -25,7 +29,9 @@
     <button class="list-btn" class:on onclick={() => pick(i)} aria-pressed={on ? 'true' : 'false'}>
       <span class="dot" style:background={s.color} style:box-shadow="0 0 12px {s.color}"></span>
       <span class="name-col"><span class="name">{s.name}</span></span>
-      <svg width="72" height="26" viewBox="0 0 72 26" aria-hidden="true"><polyline points={s.spark} fill="none" stroke={s.color} stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"></polyline></svg>
+      <svg width="72" height="26" viewBox="0 0 72 26" aria-hidden="true">
+        <defs><linearGradient id="{uid}-{i}" gradientUnits="userSpaceOnUse" x1="0" y1="3" x2="0" y2="23">{#each s.grad as g}<stop offset={g.o} stop-color={g.c}></stop>{/each}</linearGradient></defs>
+        <polyline points={s.spark} fill="none" stroke={s.grad.length ? `url(#${uid}-${i})` : s.color} stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"></polyline></svg>
       <span class="vals">
         <span class="temp">{s.temp}</span>
         <span class="hum">{s.hum}</span>

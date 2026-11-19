@@ -5,6 +5,8 @@
   import { dayStartOf, sensorName } from '../lib/data.js';
 
   let { store } = $props();
+  const pid = $props.id();
+  const gid = 'det-grad-' + pid;
 
   const PX0 = 34, PX1 = 314, PY0 = 8, PY1 = 104;
   const isH = $derived(store.metric === 'h');
@@ -59,7 +61,11 @@
     pts.forEach((p, k) => { if (k && p.ts - pts[k - 1].ts > 20 * 60000) flush(); seg.push(p); });
     flush();
 
-    const delta = last && first ? last.t - first.t : NaN;
+    // амплітуда за показаний проміжок (поточна/архівна доба або година): максимум − мінімум
+    const amp = mnP && mxP ? mxP.t - mnP.t : NaN;
+    // градієнт лінії й заливки за значенням: кожна висота графіка має колір своєї температури/вологості
+    const grad = [];
+    for (let k = 0; k <= 12; k++) { const val = hi - (hi - lo) * k / 12; grad.push({ o: (k / 12).toFixed(3), c: vc(val) }); }
     const name = sensorName(sel);
     const period = hourMode ? (archive ? dayLabel(store.day) + ' · ' : '') + hm(r0) + '–' + hm(r1)
                             : (archive ? dayLabel(store.day) + ' · ' + weekday(store.day) : 'Сьогодні · 00:00–' + hm(now));
@@ -73,8 +79,9 @@
       line: line.trim(), area: area.trim(),
       dot: last ? { x: X(last.ts).toFixed(1), y: Y(last.t).toFixed(1), op: 1 } : { x: 0, y: 0, op: 0 },
       nowX: live && !hourMode ? X(now).toFixed(1) : -1000,   // пунктир «зараз» лише для живої доби
-      deltaLabel: hourMode ? 'Зміна за годину' : 'Зміна за добу',
-      delta: isFinite(delta) ? (delta >= 0 ? '+' : '−') + Math.abs(delta).toFixed(1).replace('.', ',') + unit : '—',
+      ampLabel: hourMode ? 'Амплітуда за годину' : 'Амплітуда за добу',
+      amp: isFinite(amp) ? amp.toFixed(1).replace('.', ',') + unit : '—',
+      grad,
       chartAria: (isH ? 'Вологість ' : 'Температура ') + name + ', ' + period + ', від ' + vf(mnP ? mnP.t : NaN) + ' до ' + vf(mxP ? mxP.t : NaN)
     };
   });
@@ -112,15 +119,20 @@
       <text x="28" y={gy.ty} text-anchor="end" class="det-axis">{gy.label}</text>
     {/each}
     <line x1={v.nowX} x2={v.nowX} y1="8" y2="104" stroke-dasharray="2 3" class="strong"></line>
-    <path d={v.area} fill={v.color} opacity="0.12"></path>
-    <path d={v.line} fill="none" stroke={v.color} stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"></path>
+    <defs>
+      <linearGradient id="{gid}" gradientUnits="userSpaceOnUse" x1="0" y1="8" x2="0" y2="104">
+        {#each v.grad as g}<stop offset={g.o} stop-color={g.c}></stop>{/each}
+      </linearGradient>
+    </defs>
+    <path d={v.area} fill="url(#{gid})" opacity="0.14"></path>
+    <path d={v.line} fill="none" stroke="url(#{gid})" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"></path>
     <circle cx={v.dot.x} cy={v.dot.y} r="3.5" fill={v.color} opacity={v.dot.op} stroke-width="2" class="dot"></circle>
     {#each v.xTicks as tk}
       <line x1={tk.x} x2={tk.x} y1="104" y2="108" class="strong"></line>
       <text x={tk.x} y="120" text-anchor={tk.anchor} class="det-axis">{tk.label}</text>
     {/each}
   </svg>
-  <p class="det-delta">{v.deltaLabel}: <b>{v.delta}</b></p>
+  <p class="det-delta">{v.ampLabel}: <b>{v.amp}</b></p>
 </section>
 
 <style>
