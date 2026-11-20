@@ -73,6 +73,8 @@
       name, period, hourMode, color: vc(last ? last.t : NaN),
       nowLabel: live ? 'Зараз' : 'Остання', now: vf(last ? last.t : NaN),
       avg: vf(avg), min: vf(mnP ? mnP.t : NaN), max: vf(mxP ? mxP.t : NaN),
+      // мінімум і максимум — кольором їхнього значення на шкалі (температури або вологості)
+      minColor: mnP ? vc(mnP.t) : 'var(--text)', maxColor: mxP ? vc(mxP.t) : 'var(--text)',
       minAt: mnP ? hm(mnP.ts) : '—', maxAt: mxP ? hm(mxP.ts) : '—',
       gridY,
       xTicks: ticks.map((tk, k) => ({ x: X(tk.t).toFixed(1), label: tk.label, anchor: k === 0 ? 'start' : (k === ticks.length - 1 ? 'end' : 'middle') })),
@@ -110,8 +112,8 @@
   <div class="det-grid">
     <div class="tile det-tile"><span class="det-lbl">{v.nowLabel}</span><span class="det-val" style:color={v.color}>{v.now}</span></div>
     <div class="tile det-tile"><span class="det-lbl">Середня</span><span class="det-val">{v.avg}</span></div>
-    <div class="tile det-tile"><span class="det-lbl">Мінімум · {v.minAt}</span><span class="det-val" style:color="var(--cold)">{v.min}</span></div>
-    <div class="tile det-tile"><span class="det-lbl">Максимум · {v.maxAt}</span><span class="det-val" style:color="var(--warm)">{v.max}</span></div>
+    <div class="tile det-tile"><span class="det-lbl">Мінімум · {v.minAt}</span><span class="det-val" style:color={v.minColor}>{v.min}</span></div>
+    <div class="tile det-tile"><span class="det-lbl">Максимум · {v.maxAt}</span><span class="det-val" style:color={v.maxColor}>{v.max}</span></div>
   </div>
   <svg class="det-chart" viewBox="0 0 320 124" width="100%" role="img" aria-label={v.chartAria}>
     {#each v.gridY as gy}
